@@ -1,0 +1,2 @@
+print 'HOGE',
+print 'FUGA',

@@ -1,0 +1,3 @@
+void pic() {
+    puts("pic");
+}

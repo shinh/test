@@ -1,0 +1,2 @@
+        GLOBAL main
+main:   db 0xe8, 0xfd, 0xff
