@@ -1,1 +1,0 @@
-s=raw_input();print''.join(map(min,s,s.title()))
