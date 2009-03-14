@@ -1,0 +1,1 @@
+d=Hash.new [];$<.map{|l|l.scan(/\w+/){d[$&]+=[$.]}};p d

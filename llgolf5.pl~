@@ -1,0 +1,1 @@
+print"$_\n"if/^.0*$/for0.."@ARGV"

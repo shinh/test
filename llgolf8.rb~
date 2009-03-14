@@ -1,0 +1,1 @@
+(-n=gets.to_i).upto(n){|i|puts'*'*i}

@@ -1,0 +1,10 @@
+#print"*"x($n-abs)."\n"for-($n=<>)..$n
+
+#print"*"x($n-abs).$/for(x)x<>
+print"*"x$_.$/for 0..2*($n=<>)
+
+#print"*"x($n-abs).$/for-($n=<>)..$n
+
+#print"*"x($n-abs).$/for-($n=<>)..$n
+
+#$_=<>;(print'*'x$..$/)&&($.+=$&||/$./?-1:1)while$.

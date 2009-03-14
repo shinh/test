@@ -1,0 +1,3 @@
+/[/;]/ihello
+q
+"dadkfhakjsdh"
