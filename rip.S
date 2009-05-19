@@ -1,0 +1,16 @@
+mov 0x12345678(%rip), %rax
+mov 0x12345678(%rip), %rdx
+mov 0x12345678(%rip), %eax
+mov 0x12345678(%rip), %ebx
+mov 0x12345678(%rip), %ecx
+mov 0x12345678(%rip), %edx
+lea 0x12345678(%rip), %rax
+lea 0x12345678(%rip), %rdx
+lea 0x12345678(%rip), %eax
+lea 0x12345678(%rip), %ebx
+lea 0x12345678(%rip), %ecx
+lea 0x12345678(%rip), %edx
+mov $0x12345678, %rax
+mov $0x12345678, %rdx
+mov $0x12345678, %eax
+mov $0x12345678, %edx
