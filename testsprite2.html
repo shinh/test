@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html
+PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja" >
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta name="ROBOTS" content="ALL" />
+<script type="text/javascript" >
+
+var NUM_OF_ICONS = 50;
+
+function Sprite(screenW, screenH, w, h, pattern)
+{
+	this.w = w;
+	this.h = h;
+	this.moveLeft = w/2;
+	this.moveRight = screenW-w/2;
+	this.moveTop = h/2;
+	this.moveBottom = screenH-h/2;
+	this.pattern = pattern;
+	this.x = Math.round(Math.random() * (this.moveRight - this.moveLeft))
+	this.y = Math.round(Math.random() * (this.moveBottom - this.moveTop))
+	this.angle = Math.round(Math.random() * 360)
+	do
+	{
+		this.dx = Math.round(Math.random() * 3) - 1;
+		this.dy = Math.round(Math.random() * 3) - 1;
+	}
+	while ((this.dx == 0) && (this.dx == 0));
+	
+}
+
+Sprite.prototype = {
+	update:function()
+	{
+		this.x += this.dx;
+		if (this.x < this.moveLeft)
+		{
+			this.dx = -this.dx;
+			this.x = this.moveLeft;
+		}
+		else if (this.x > this.moveRight)
+		{
+			this.dx = -this.dx;
+			this.x = this.moveRight;
+		}
+
+		this.y += this.dy;
+		if (this.y < this.moveTop)
+		{
+			this.dy = -this.dy;
+			this.y = this.moveTop;
+		}
+		else if (this.y > this.moveBottom)
+		{
+			this.dy = -this.dy;
+			this.y = this.moveBottom;
+		}
+		this.angle = (this.angle + 1) % 360;
+//		alert("angle : " + this.angle);
+	},
+	draw:function(gc)
+	{
+/*
+		gc.save();
+		gc.fillStyle = this.pattern;
+//		gc.fillStyle = "#ff0000";
+		gc.translate(this.x, this.y);
+//		gc.rotate(this.angle / 180.0 * Math.PI);
+		gc.translate(-this.w/2, -this.h/2);
+		gc.fillRect(0, 0, this.w, this.h);
+		gc.restore();
+*/
+        gc.drawImage(this.pattern, this.x-this.w/2, this.y-this.h/2);
+	}
+}
+
+testSprite = {
+	canvas : null,
+	context : null,
+	icon : null,
+	imagePattern : null,
+	sprites : [],
+	init:function()
+	{
+		this.canvas = document.getElementById("test_canvas");
+		this.context = this.canvas.getContext("2d");
+		this.icon = new Image(32, 32);
+		this.icon.src = "icon.png"
+/*
+		do
+		{
+			try
+			{
+				this.imagePattern = this.context.createPattern(this.icon, "no-repeat");
+
+			}
+			catch (e)
+			{
+				alert(e);
+			}
+		}
+		while (!this.imagePattern);
+*/
+
+		var i;
+		for (i = 0; i < NUM_OF_ICONS;i++)
+		{
+			var sprite = new Sprite(
+				this.canvas.width, this.canvas.height,
+				this.icon.width, this.icon.height,
+				this.icon);
+			this.sprites.push(sprite);
+		}
+	},
+	updateAll : function()
+	{
+		// clear bg
+		this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+		var i;
+		for (i = this.sprites.length-1;i >= 0 ;i--)
+		{
+			this.sprites[i].update();
+			this.sprites[i].draw(this.context);
+		}
+	},
+}
+
+function run()
+{
+	testSprite.updateAll();
+}
+
+function init()
+{
+	try
+	{
+		testSprite.init();
+		window.setInterval(run, "30");
+	}
+	catch (e) { alert(e); }
+}
+</script>
+</head>
+<body onload="init()" >
+<h1> Canvas : TestSprite </h1>
+
+<canvas id="test_canvas" width="320" height="240" />
+
+</body>
+</html>
