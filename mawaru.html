@@ -1,0 +1,74 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html> <head>
+<title>mawaru yatsu</title>
+
+<script>
+var balls = [];
+var prevExpr = "(n+3)*0.1";
+
+function init() {
+  for (var i = 0; i < 7; i++) {
+    balls[i] = 0;
+  }
+
+  cont();
+}
+
+function cont() {
+  setTimeout("paint();", 16);
+}
+
+function paint() {
+  var expr = document.getElementById("expr").value;
+
+  try {
+    var n = 0;
+    eval(expr);
+  } catch(e) {
+    expr = prevExpr;
+  }
+  prevExpr = expr;
+
+  for (var n = 0; n < 7; n++) {
+    balls[n] += eval(expr);
+  }
+
+  var canvas = document.getElementById("canvas");
+  var ctx = canvas.getContext("2d");
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+  ctx.globalCompositeOperation = "source-over";
+  ctx.fillRect(0, 0, 500, 500);
+
+  ctx.fillStyle = 'rgb(255, 255, 255)';
+  for (var n = 0; n < 7; n++) {
+    balls[n] += eval(expr);
+
+    var r = balls[n] * Math.PI / 180;
+    var x = Math.cos(r) * 150 + 250;
+    var y = Math.sin(r) * 150 + 250;
+    ctx.beginPath();
+    ctx.arc(x, y, 15, 0, Math.PI * 2, true);
+    ctx.fill();
+  }
+
+  cont();
+}
+</script>
+
+</head>
+
+<body onload="init();">
+<h1>mawaru yatsu</h1>
+
+<canvas id="canvas" width="500" height="500">
+</canvas>
+
+<p>
+<input id="expr" value="(n+3)*0.1">
+
+<hr>
+<address></address>
+<!-- hhmts start -->
+Last modified: Sat Jun 27 01:32:24 JST 2009
+<!-- hhmts end -->
+</body> </html>
