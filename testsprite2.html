@@ -10,7 +10,7 @@ PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 
 var NUM_OF_ICONS = 50;
 
-function Sprite(screenW, screenH, w, h, pattern)
+function Sprite(screenW, screenH, w, h, icon, pattern)
 {
 	this.w = w;
 	this.h = h;
@@ -18,6 +18,7 @@ function Sprite(screenW, screenH, w, h, pattern)
 	this.moveRight = screenW-w/2;
 	this.moveTop = h/2;
 	this.moveBottom = screenH-h/2;
+	this.icon = icon;
 	this.pattern = pattern;
 	this.x = Math.round(Math.random() * (this.moveRight - this.moveLeft))
 	this.y = Math.round(Math.random() * (this.moveBottom - this.moveTop))
@@ -28,6 +29,7 @@ function Sprite(screenW, screenH, w, h, pattern)
 		this.dy = Math.round(Math.random() * 3) - 1;
 	}
 	while ((this.dx == 0) && (this.dx == 0));
+    this.dx = this.dy = 0;
 	
 }
 
@@ -62,17 +64,17 @@ Sprite.prototype = {
 	},
 	draw:function(gc)
 	{
-/*
 		gc.save();
 		gc.fillStyle = this.pattern;
 //		gc.fillStyle = "#ff0000";
 		gc.translate(this.x, this.y);
-//		gc.rotate(this.angle / 180.0 * Math.PI);
+		gc.rotate(this.angle / 180.0 * Math.PI);
 		gc.translate(-this.w/2, -this.h/2);
 		gc.fillRect(0, 0, this.w, this.h);
 		gc.restore();
+/*
+        gc.drawImage(this.icon, this.x-this.w/2, this.y-this.h/2);
 */
-        gc.drawImage(this.pattern, this.x-this.w/2, this.y-this.h/2);
 	}
 }
 
@@ -88,7 +90,7 @@ testSprite = {
 		this.context = this.canvas.getContext("2d");
 		this.icon = new Image(32, 32);
 		this.icon.src = "icon.png"
-/*
+
 		do
 		{
 			try
@@ -102,7 +104,6 @@ testSprite = {
 			}
 		}
 		while (!this.imagePattern);
-*/
 
 		var i;
 		for (i = 0; i < NUM_OF_ICONS;i++)
@@ -110,7 +111,7 @@ testSprite = {
 			var sprite = new Sprite(
 				this.canvas.width, this.canvas.height,
 				this.icon.width, this.icon.height,
-				this.icon);
+				this.icon, this.imagePattern);
 			this.sprites.push(sprite);
 		}
 	},
