@@ -81,6 +81,22 @@ void stack_ni_yasasii_free_tree(tree* t) {
     }
 }
 
+// http://d.hatena.ne.jp/kurimura/20091012/1255340288
+void stack_ni_yasasii_free_tree_kurimura(tree* t) {
+    while (t){
+        tree* tmp;
+        while (t->r){
+            tmp = t->r;
+            t->r = tmp->l;
+            tmp->l = t;
+            t = tmp;
+        }
+        tmp = t;
+        t = t->l;
+        wrap_free(tmp);
+    }
+}
+
 int main() {
     tree* r = new_tree(5);
     insert(r, 3);
@@ -94,7 +110,8 @@ int main() {
     insert(r, 10);
 
     //free_tree(r);
-    stack_ni_yasasii_free_tree(r);
+    //stack_ni_yasasii_free_tree(r);
+    stack_ni_yasasii_free_tree_kurimura(r);
 
     printf("%d %d\n", free_cnt, free_checksum);
 }
