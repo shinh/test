@@ -2,14 +2,13 @@
 #include <pthread.h>
 #include <sched.h>
 
-#define USE_PTHREAD_MUTEX
+//#define USE_PTHREAD_MUTEX
 //#define USE_PTHREAD_SPINLOCK
 //#define USE_CMPXCHG
+#define USE_CMPXCHG2
 //#define USE_SYNC_ADD
 //#define USE_PPC
 //#define USE_PPC2
-
-int cnt;
 
 #if defined(USE_PTHREAD_MUTEX)
 pthread_mutex_t mu;
@@ -18,6 +17,8 @@ pthread_spinlock_t mu;
 #else
 int mu;
 #endif
+
+int cnt;
 
 void* count_up(void* idp) {
     int id = (int)idp;
@@ -38,6 +39,12 @@ void* count_up(void* idp) {
         }
         cnt++;
         mu = 0;
+#elif defined(USE_CMPXCHG2)
+        while (1) {
+            int v = cnt;
+            if (__sync_val_compare_and_swap(&cnt, v, v+1) == v) break;
+            sched_yield();
+        }
 #elif defined(USE_SYNC_ADD)
         __sync_add_and_fetch(&cnt, 1);
 #elif defined(USE_PPC)
@@ -54,7 +61,7 @@ void* count_up(void* idp) {
             " addi 7, 7, 1;\n"
             " stwcx. 7, 0, %0;\n"
             " bne- .lock_cnt;\n"
-            :"=r"(mup)::"7","6");
+            :"=r"(mup)::"7");
         cnt++;
         mu = 0;
 #elif defined(USE_PPC2)
