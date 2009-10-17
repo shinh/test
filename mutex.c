@@ -2,17 +2,20 @@
 #include <pthread.h>
 #include <sched.h>
 
-//#define USE_PTHREAD_MUTEX
+#define USE_PTHREAD_MUTEX
 //#define USE_PTHREAD_SPINLOCK
-#define USE_CMPXCHG
+//#define USE_CMPXCHG
+//#define USE_SYNC_ADD
+//#define USE_PPC
+//#define USE_PPC2
 
-long long cnt;
+int cnt;
 
 #if defined(USE_PTHREAD_MUTEX)
 pthread_mutex_t mu;
 #elif defined(USE_PTHREAD_SPINLOCK)
 pthread_spinlock_t mu;
-#elif defined(USE_CMPXCHG)
+#else
 int mu;
 #endif
 
@@ -35,6 +38,33 @@ void* count_up(void* idp) {
         }
         cnt++;
         mu = 0;
+#elif defined(USE_SYNC_ADD)
+        __sync_add_and_fetch(&cnt, 1);
+#elif defined(USE_PPC)
+        int* mup;
+        asm(" b .yielded;\n"
+            ".yield:\n"
+            " bl sched_yield;\n"
+            ".yielded:\n");
+        mup = &mu;
+        asm(".lock_cnt:\n"
+            " lwarx 7, 0, %0;\n"
+            " cmpwi 7, 0;\n"
+            " bne .yield;\n"
+            " addi 7, 7, 1;\n"
+            " stwcx. 7, 0, %0;\n"
+            " bne- .lock_cnt;\n"
+            :"=r"(mup)::"7","6");
+        cnt++;
+        mu = 0;
+#elif defined(USE_PPC2)
+        int* cntp = &cnt;
+        asm(".lock_cnt:\n"
+            " lwarx 7, 0, %0;\n"
+            " addi 7, 7, 1;\n"
+            " stwcx. 7, 0, %0;\n"
+            " bne- .lock_cnt;\n"
+            :"=r"(cntp)::"7");
 #else
         cnt++;
 #endif
@@ -63,7 +93,7 @@ int main() {
         pthread_join(th[i], &dummy);
     }
 
-    printf("%lld\n", cnt);
+    printf("%d\n", cnt);
 
 #if defined(USE_PTHREAD_MUTEX)
     pthread_mutex_destroy(&mu);
