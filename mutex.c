@@ -3,8 +3,8 @@
 #include <sched.h>
 
 //#define USE_PTHREAD_MUTEX
-#define USE_PTHREAD_SPINLOCK
-//#define USE_CMPXCHG
+//#define USE_PTHREAD_SPINLOCK
+#define USE_CMPXCHG
 
 long long cnt;
 
@@ -46,7 +46,9 @@ void* count_up(void* idp) {
 #define NUM_THREADS 10
 
 int main() {
-#ifdef USE_PTHREAD_SPINLOCK
+#if defined(USE_PTHREAD_MUTEX)
+    pthread_mutex_init(&mu, NULL);
+#elif defined(USE_PTHREAD_SPINLOCK)
     pthread_spin_init(&mu, PTHREAD_PROCESS_PRIVATE);
 #endif
 
@@ -62,4 +64,10 @@ int main() {
     }
 
     printf("%lld\n", cnt);
+
+#if defined(USE_PTHREAD_MUTEX)
+    pthread_mutex_destroy(&mu);
+#elif defined(USE_PTHREAD_SPINLOCK)
+    pthread_spin_destroy(&mu);
+#endif
 }
