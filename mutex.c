@@ -1,12 +1,19 @@
 #include <stdio.h>
 #include <pthread.h>
+#include <sched.h>
 
-#define USE_PTHREAD
+//#define USE_PTHREAD_MUTEX
+#define USE_PTHREAD_SPINLOCK
+//#define USE_CMPXCHG
 
 long long cnt;
 
-#ifdef USE_PTHREAD
+#if defined(USE_PTHREAD_MUTEX)
 pthread_mutex_t mu;
+#elif defined(USE_PTHREAD_SPINLOCK)
+pthread_spinlock_t mu;
+#elif defined(USE_CMPXCHG)
+int mu;
 #endif
 
 void* count_up(void* idp) {
@@ -14,10 +21,20 @@ void* count_up(void* idp) {
     int i;
     printf("thread %d start\n", id);
     for (i = 0; i < 10000000; i++) {
-#ifdef USE_PTHREAD
+#if defined(USE_PTHREAD_MUTEX)
         pthread_mutex_lock(&mu);
         cnt++;
         pthread_mutex_unlock(&mu);
+#elif defined(USE_PTHREAD_SPINLOCK)
+        pthread_spin_lock(&mu);
+        cnt++;
+        pthread_spin_unlock(&mu);
+#elif defined(USE_CMPXCHG)
+        while (__sync_val_compare_and_swap(&mu, 0, 1)) {
+            sched_yield();
+        }
+        cnt++;
+        mu = 0;
 #else
         cnt++;
 #endif
@@ -29,6 +46,10 @@ void* count_up(void* idp) {
 #define NUM_THREADS 10
 
 int main() {
+#ifdef USE_PTHREAD_SPINLOCK
+    pthread_spin_init(&mu, PTHREAD_PROCESS_PRIVATE);
+#endif
+
     int i;
     pthread_t th[NUM_THREADS];
     for (i = 0; i < NUM_THREADS; i++) {
