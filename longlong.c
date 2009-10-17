@@ -1,4 +1,4 @@
-int f(int a, int n) {
-    long long t = (long long)a*n+a;
+int f(int x, int y) {
+    long long t = (long long)x * y;
     return t;
 }

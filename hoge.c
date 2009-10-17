@@ -1,10 +1,10 @@
-int f() {
-    int i = 3;
-    int j = 5;
-    //printf("%d\n", i+j);
-    return i+j;
+#include <stdio.h>
+
+void hoge() {
+    puts("hoge");
 }
 
 int main() {
-    printf("%d\n", f());
+    //hoge();
+    fputc(-1, stdout);
 }

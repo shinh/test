@@ -1,4 +1,5 @@
-int main() {
-    printf("%d\n", -1 / 4);
-    printf("%d\n", -1 % 4);
-}
+unsigned int umod3(unsigned int n) { return n % 3; }
+int          mod3(int n)           { return n % 3; }
+unsigned int udiv3(unsigned int n) { return n / 3; }
+int          div3(int n)           { return n / 3; }
+

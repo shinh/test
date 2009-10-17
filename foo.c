@@ -1,3 +1,4 @@
-void foo() {
-  bar();
-}
+#define A B
+#define S(X) #X
+#define C #A
+C
