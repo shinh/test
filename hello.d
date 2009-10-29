@@ -1,3 +1,4 @@
+import std.c.stdio;
 void main(){printf="Hello, world!\n";}
 /*
 import std.cstream;
