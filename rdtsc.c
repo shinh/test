@@ -1,14 +1,16 @@
 #ifdef __i386__
 # define RDTSC_REG "=A"
+# define REG_PREFIX "e"
 #else
 # define RDTSC_REG "=a"
+# define REG_PREFIX "r"
 #endif
 
 #define RDTSC(X)                                                        \
     do {                                                                \
-        __asm__ __volatile__ ("push %%ebx;\n"                           \
+        __asm__ __volatile__ ("push %%" REG_PREFIX "bx;\n"              \
                               "cpuid;\n"                                \
-                              "pop %%ebx;\n"                            \
+                              "pop %%" REG_PREFIX "bx;\n"               \
                               ::: "eax", "ecx", "edx");                 \
         __asm__ __volatile__ ("rdtsc": RDTSC_REG(X));                   \
     } while (0);
