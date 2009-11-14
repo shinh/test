@@ -12,7 +12,7 @@ const H = 480 - 32;
 func main() {
 	sdl.Init(sdl.INIT_VIDEO);
 
-	screen := sdl.SetVideoMode(640, 480, 16, 0);
+	screen := sdl.SetVideoMode(640, 480, 32, 0);
 	image := sdl.Load("../icon.bmp");
 	image.SetColorKey(sdl.RLEACCEL | sdl.SRCCOLORKEY, image.MapRGB(255, 255, 255));
 
@@ -31,8 +31,8 @@ func main() {
 		vx[i] = 0;
 		vy[i] = 0;
 		for vx[i] == 0 && vy[i] == 0 {
-			vx[i] = int16(rg.Intn(3));
-			vy[i] = int16(rg.Intn(3));
+			vx[i] = int16(rg.Intn(3) - 1);
+			vy[i] = int16(rg.Intn(3) - 1);
 		}
 	}
 
