@@ -11,7 +11,7 @@ func main() {
 	go f(cc);
 	c := <- cc;
 	c <- 42;
-	c <- 99;
+	//c <- 99;
 	c = <- cc;
 	//d := <- cc;
 }
