@@ -298,7 +298,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (!debug_line_shdr) {
-        error("no debug info?");
+        error("no debug info?\n");
     }
 
     char* debug_line = file + debug_line_shdr->sh_offset;
