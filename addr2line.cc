@@ -166,8 +166,11 @@ void dump_debug_line_cu(char*& debug_line, unsigned long size) {
     bool epilogue_begin = false;
     uint isa = 0;
 
-#define DUMP_LINE()                                             \
-    printf("%s:%d: %p\n", filenames[file].c_str(), line, addr)
+#define DUMP_LINE()                                                 \
+    do {                                                            \
+        printf("%s:%d: %p\n", filenames[file].c_str(), line, addr); \
+        basic_block = prologue_end = epilogue_begin = false;        \
+    } while (0)
 
     //printf("%d %d %d\n", p-debug_line, unit_length, header_length);
     if (p != cu_start) {
@@ -177,25 +180,9 @@ void dump_debug_line_cu(char*& debug_line, unsigned long size) {
     while (p < cu_end) {
         ulong a;
         ubyte op = *p++;
-#if 0
-        printf("op: %d\n", op);
-        printf("%d\n", p[0]);
-        printf("%d\n", p[1]);
-        printf("%d\n", p[2]);
-        printf("%d\n", p[3]);
-        printf("%d\n", p[4]);
-        printf("%d\n", p[5]);
-        printf("%d\n", p[6]);
-        printf("%d\n", p[7]);
-        printf("%d\n", p[8]);
-        printf("%d\n", p[9]);
-        printf("%d\n", p[10]);
-        printf("%d\n", p[11]);
-#endif
         switch (op) {
         case DW_LNS_copy:
             DUMP_LINE();
-            basic_block = prologue_end = epilogue_begin = false;
             break;
         case DW_LNS_advance_pc:
             a = uleb128(p);
@@ -249,10 +236,7 @@ void dump_debug_line_cu(char*& debug_line, unsigned long size) {
                 line = 1;
                 column = 0;
                 is_stmt = default_is_stmt;
-                basic_block = false;
                 end_sequence = false;
-                prologue_end = false;
-                epilogue_begin = false;
                 isa = 0;
                 break;
             case DW_LNE_set_address:
@@ -275,9 +259,6 @@ void dump_debug_line_cu(char*& debug_line, unsigned long size) {
             //printf("special: addr +%d => %p, line +%d => %d\n",
             //       addr_incr, addr, line_incr, line);
             DUMP_LINE();
-            basic_block = false;
-            prologue_end = false;
-            epilogue_begin = false;
         }
         }
     }
@@ -290,7 +271,7 @@ void dump_debug_line(char* debug_line, unsigned long size) {
         dump_debug_line_cu(debug_line, size);
     }
     if (debug_line != end) {
-        error("Unexpected size of debug_line");
+        error("Unexpected size of debug_line\n");
     }
 }
 
