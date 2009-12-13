@@ -10,4 +10,8 @@ D::D() { puts("D"); }
 int main() {
     D d;
     B b;
+
+    printf("%p\n", (*(void***)&b)[-3]);
+    printf("%p\n", (*(void***)&b)[-2]);
+    printf("%p\n", (*(void***)&b)[-1]);
 }

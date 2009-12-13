@@ -42,6 +42,7 @@ int main() {
     printf("%p\n", *(void**)c);
     printf("%p\n", (*(void***)c)[0]);
     printf("%p\n", (*(void***)c)[-1]);
+    printf("%p\n", &(*(void***)c)[-2]);
 
     printf("%d\n", sizeof(D));
 }
