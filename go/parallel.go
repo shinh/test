@@ -1,5 +1,7 @@
 package main
 
+import "runtime";
+
 type Vector []float64
 
 // Apply the operation to n elements of v starting at i.
@@ -26,7 +28,8 @@ func (v Vector) DoAll(u Vector) {
 }
 
 func main() {
-	u := make(Vector, 1000000);
-	v := make(Vector, 1000000);
+	runtime.GOMAXPROCS(4);
+	u := make(Vector, 100000000);
+	v := make(Vector, 100000000);
 	v.DoAll(u);
 }
