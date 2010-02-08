@@ -8,6 +8,7 @@ int main(int argc, char **argv)
     // FLAGS_log_dir = "t";
     google::InitGoogleLogging(argv[0]);
     google::SetLogDestination(google::INFO, "/var/tmp/another_destination.INFO");
+    VLOG(1) << "VLOG";
     LOG(INFO) << "foobar";
     LOG(ERROR) << "foobar ERR";
 }
