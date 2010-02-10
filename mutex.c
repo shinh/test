@@ -5,7 +5,8 @@
 //#define USE_PTHREAD_MUTEX
 //#define USE_PTHREAD_SPINLOCK
 //#define USE_CMPXCHG
-#define USE_CMPXCHG2
+//#define USE_CMPXCHG2
+#define USE_XCHG
 //#define USE_SYNC_ADD
 //#define USE_PPC
 //#define USE_PPC2
@@ -45,6 +46,12 @@ void* count_up(void* idp) {
             if (__sync_val_compare_and_swap(&cnt, v, v+1) == v) break;
             sched_yield();
         }
+#elif defined(USE_XCHG)
+        while (__sync_lock_test_and_set(&mu, 1)) {
+            sched_yield();
+        }
+        cnt++;
+        mu = 0;
 #elif defined(USE_SYNC_ADD)
         __sync_add_and_fetch(&cnt, 1);
 #elif defined(USE_PPC)
