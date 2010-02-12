@@ -1,15 +1,15 @@
 BEGIN {
-  print "o, "
+  print "o, ";
   END {
-    print "wor"
+    print "wor";
     BEGIN {
-      print "ll"
+      print "ll";
       END {
-        print "ld"
+        print "ld";
         BEGIN {
-          print "He"
+          print "He";
           END {
-            puts "!"
+            print "!\n";
           }
         }
       }
