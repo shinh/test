@@ -78,8 +78,10 @@ int main(int argc, char* argv[]) {
 
     SDL_Surface* o = SDL_CreateRGBSurface(SDL_SWSURFACE, s1->w, s1->h, 32,
                                           0, 0, 0, 0);
+    //o = s2;
 
     int x, y;
+    int tot_cnt = 0, err_cnt = 0;
     for (y = 0; y < s1->h; y++) {
         for (x = 0; x < s1->w; x++) {
             Uint32 p1 = getpixel(s1, x, y);
@@ -91,10 +93,27 @@ int main(int argc, char* argv[]) {
 
             int diff = abs(r1 - r2) + abs(g1 - g2) + abs(b1 - b2);
 
+            if (diff)
+                err_cnt++;
+            tot_cnt++;
+
             int c = diff / 3;
             putpixel(o, x, y, SDL_MapRGB(o->format, c, c, c));
+#if 0
+            if (c > 127) {
+                SDL_Rect r;
+                r.x = x - 5; r.y = y - 5; r.w = 10; r.h = 10;
+                SDL_FillRect(o, &r, SDL_MapRGB(o->format, c, 0, 0));
+                //putpixel(o, x, y, SDL_MapRGB(o->format, c, 0, 0));
+            } else {
+                c = 255 - (r2 + g2 + b2) / 30;
+                putpixel(o, x, y, SDL_MapRGB(o->format, c, c, c));
+            }
+#endif
         }
     }
+
+    printf("%d/%d differ\n", err_cnt, tot_cnt);
 
     SDL_SaveBMP(o, argv[3]);
 }
