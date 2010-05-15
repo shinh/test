@@ -96,21 +96,41 @@ Net Net_read(FILE* fp) {
     return r;
 }
 
-void print_percent(int value, int total, int green, int red) {
-    int percent = value * 100 / total;
-    if (percent >= red) {
+void print_color(float value, float green, float red) {
+    if (value >= red) {
         fputs(RED, stdout);
-    } else if (percent >= green) {
+    } else if (value >= green) {
         fputs(GREEN, stdout);
     }
-    printf("%4d%%", percent);
-    if (percent >= green) {
+}
+
+void print_color_reset(float value, float green) {
+    if (value >= green) {
         fputs(RESET, stdout);
     }
 }
 
+void print_percent(int value, int total, int green, int red) {
+    int percent = value * 100 / total;
+    print_color(percent, green, red);
+    printf("%4d%%", percent);
+    print_color_reset(percent, green);
+}
+
 void print_zero_percent() {
     print_percent(0, 1, 1, 1);
+}
+
+void print_megabyte(float value, float green, float red) {
+    print_color(value, green, red);
+    if (value == 0.0) {
+        fputs(" ---", stdout);
+    } else if (value < 1.0) {
+        printf(" .%02d", (int)(value * 100));
+    } else {
+        printf("% 2.1f", value);
+    }
+    print_color_reset(value, green);
 }
 
 int main(int argc, char* argv[]) {
@@ -119,13 +139,15 @@ int main(int argc, char* argv[]) {
     int show_mem = 0;
     int show_disk = 0;
     int show_net = 0;
+    int show_value = 0;
     int opt;
-    while ((opt = getopt(argc, argv, "cmdns")) != -1) {
+    while ((opt = getopt(argc, argv, "cmdnsv")) != -1) {
         switch (opt) {
         case 'c': show_all = 0; show_cpu = 1; break;
         case 'm': show_all = 0; show_mem = 1; break;
         case 'd': show_all = 0; show_disk = 1; break;
         case 'n': show_all = 0; show_net = 1; break;
+        case 'v': show_value = 1; break;
         case 's':
             RED = SCREEN_RED;
             GREEN = SCREEN_GREEN;
@@ -141,7 +163,7 @@ int main(int argc, char* argv[]) {
     prev_net.r_bytes = -1;
 
     while (1) {
-        {
+        if (show_all || show_cpu) {
             FILE* fp = fopen("/proc/stat", "rb");
             CPU cpu = CPU_read(fp);
             fclose(fp);
@@ -162,7 +184,7 @@ int main(int argc, char* argv[]) {
             prev_cpu = cpu;
         }
 
-        {
+        if (show_all || show_mem) {
             FILE* fp = fopen("/proc/meminfo", "rb");
             Mem mem = Mem_read(fp);
             fclose(fp);
@@ -175,25 +197,23 @@ int main(int argc, char* argv[]) {
                           mem.total, 50, 90);
         }
 
-        {
+        if (show_all || show_disk) {
             FILE* fp = fopen("/proc/diskstats", "rb");
             Disk disk = Disk_read(fp);
             fclose(fp);
 
             fputs(" D", stdout);
+            float read = 0.0, write = 0.0;
             if (prev_disk.read_completed >= 0) {
-                print_percent(disk.read_msec - prev_disk.read_msec, 1000,
-                              50, 80);
-                print_percent(disk.write_msec - prev_disk.write_msec, 1000,
-                              50, 80);
-            } else {
-                print_zero_percent();
-                print_zero_percent();
+                read = (disk.read_sector - prev_disk.read_sector) / 2048.0;
+                write = (disk.write_sector - prev_disk.write_sector) / 2048.0;
             }
+            print_megabyte(read, 0.5, 1.0);
+            print_megabyte(write, 0.5, 1.0);
             prev_disk = disk;
         }
 
-        {
+        if (show_all || show_net) {
             FILE* fp = fopen("/proc/net/dev", "rb");
             char buf[256];
             fgets(buf, 255, fp);  // Inter-|
@@ -203,16 +223,13 @@ int main(int argc, char* argv[]) {
             fclose(fp);
 
             fputs(" N", stdout);
+            float rx = 0.0, tx = 0.0;
             if (prev_net.r_bytes >= 0) {
-                static const int MAX_BYTES_PER_SEC = (1 << 20) * 100 / 8;
-                print_percent(net.r_bytes - prev_net.r_bytes,
-                              MAX_BYTES_PER_SEC, 50, 80);
-                print_percent(net.t_bytes - prev_net.t_bytes,
-                              MAX_BYTES_PER_SEC, 50, 80);
-            } else {
-                print_zero_percent();
-                print_zero_percent();
+                rx = (net.r_bytes - prev_net.r_bytes) / 1024 / 1024.0;
+                tx = (net.t_bytes - prev_net.t_bytes) / 1024 / 1024.0;
             }
+            print_megabyte(rx, 0.5, 1.0);
+            print_megabyte(tx, 0.5, 1.0);
             prev_net = net;
         }
 
