@@ -46,19 +46,20 @@ int64 CPU_total(CPU* cpu) {
 }
 
 typedef struct {
-    int total, free, buffers, cached, swapcached, active, inactive;
+    int total, free, buffers, cached, swapcached, active, inactive,
+        active_anon, inactive_anon, active_file, inactive_file,
+        unevictable, mlocked, swap_total, swap_free, dirty,
+        write_back, anon_pages, mapped, shmem,
+        slab, sreclaimable, sunreclaim;
 } Mem;
 
 Mem Mem_read(FILE* fp) {
     Mem r;
     char buf[99];
-    fscanf(fp, "%s%d kB", buf, &r.total);
-    fscanf(fp, "%s%d kB", buf, &r.free);
-    fscanf(fp, "%s%d kB", buf, &r.buffers);
-    fscanf(fp, "%s%d kB", buf, &r.cached);
-    fscanf(fp, "%s%d kB", buf, &r.swapcached);
-    fscanf(fp, "%s%d kB", buf, &r.active);
-    fscanf(fp, "%s%d kB", buf, &r.inactive);
+    int i;
+    for (i = 0; i < sizeof(r) / sizeof(int); i++) {
+        fscanf(fp, "%s%d kB", buf, (int*)&r + i);
+    }
     return r;
 }
 
@@ -150,7 +151,7 @@ int main(int argc, char* argv[]) {
                 CPU diff = CPU_diff(&cpu, &prev_cpu);
                 int64 total = CPU_total(&diff);
                 if (total) {
-                    int64 busy = total - diff.idletime - diff.iowait;
+                    int64 busy = total - diff.idletime;
                     print_percent(busy * NUM_CPU, total, 100, 180);
                     print_percent(diff.usertime * NUM_CPU, total, 100, 180);
                 }
@@ -167,7 +168,8 @@ int main(int argc, char* argv[]) {
             fclose(fp);
 
             fputs(" M", stdout);
-            print_percent(mem.total - mem.free - mem.buffers - mem.cached,
+            print_percent(mem.total - mem.free -
+                          mem.buffers - mem.cached - mem.sreclaimable,
                           mem.total, 50, 90);
             print_percent(mem.total - mem.free,
                           mem.total, 50, 90);
