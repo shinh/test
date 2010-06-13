@@ -72,12 +72,18 @@ typedef struct {
 Disk Disk_read(FILE* fp) {
     Disk r;
     int major, minor;
-    char buf[99];
-    fscanf(fp, "%d%d%s%d%d%d%d%d%d%d%d%d%d%d",
-           &major, &minor, buf,
-           &r.read_completed, &r.read_merged, &r.read_sector, &r.read_msec,
-           &r.write_completed, &r.write_merged, &r.write_sector, &r.write_msec,
-           &r.io, &r.io_msec, &r.weighted_io_msec);
+    char name[99];
+    int ret;
+retry:
+    ret = fscanf(
+        fp, "%d%d%s%d%d%d%d%d%d%d%d%d%d%d",
+        &major, &minor, name,
+        &r.read_completed, &r.read_merged, &r.read_sector, &r.read_msec,
+        &r.write_completed, &r.write_merged, &r.write_sector, &r.write_msec,
+        &r.io, &r.io_msec, &r.weighted_io_msec);
+    if (ret && strcmp(name, "sda")) {
+        goto retry;
+    }
     return r;
 }
 
@@ -190,8 +196,9 @@ int main(int argc, char* argv[]) {
             fclose(fp);
 
             fputs(" M", stdout);
-            print_percent(mem.total - mem.free -
-                          mem.buffers - mem.cached - mem.sreclaimable,
+            int64 reclaimable =
+                mem.buffers + mem.cached + mem.sreclaimable - mem.mapped;
+            print_percent(mem.total - mem.free - reclaimable,
                           mem.total, 50, 90);
             print_percent(mem.total - mem.free,
                           mem.total, 50, 90);
