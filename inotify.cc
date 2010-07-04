@@ -60,40 +60,43 @@ void process_events(const map<int, string>& watches, string* buf) {
     }
 }
 
+void watch_child() {
+    int fd = inotify_init ();
+    PCHECK(fd >= 0) << "inotify_init";
+
+    map<int, string> watches;
+    add_watch_dir(fd, ".", &watches);
+
+    struct sigaction sa;
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = &do_nothing;
+    sa.sa_flags = SA_NOCLDSTOP;
+    PCHECK(sigaction(SIGCHLD, &sa, NULL) >= 0) << "sigaction";
+
+    string buf;
+    while (true) {
+        fd_set fds;
+        FD_ZERO(&fds);
+        FD_SET(fd, &fds);
+        int r = select(fd + 1, &fds, NULL, NULL, NULL);
+        if (r < 0) {
+            PCHECK(errno == EINTR) << "select";
+            break;
+        }
+        if (FD_ISSET(fd, &fds)) {
+            read_events(fd, &buf);
+            process_events(watches, &buf);
+        }
+    }
+
+    close(fd);
+    PCHECK(wait(NULL) >= 0) << "wait";
+}
+
 int main(int argc, char* argv[]) {
     if (fork()) {
         google::InitGoogleLogging(argv[0]);
-
-        int fd = inotify_init ();
-        PCHECK(fd >= 0) << "inotify_init";
-
-        map<int, string> watches;
-        add_watch_dir(fd, ".", &watches);
-
-        struct sigaction sa;
-        memset(&sa, 0, sizeof(sa));
-        sa.sa_handler = &do_nothing;
-        sa.sa_flags = SA_NOCLDSTOP;
-        PCHECK(sigaction(SIGCHLD, &sa, NULL) >= 0) << "sigaction";
-
-        string buf;
-        while (true) {
-            fd_set fds;
-            FD_ZERO(&fds);
-            FD_SET(fd, &fds);
-            int r = select(fd + 1, &fds, NULL, NULL, NULL);
-            if (r < 0) {
-                PCHECK(errno == EINTR) << "select";
-                break;
-            }
-            if (FD_ISSET(fd, &fds)) {
-                read_events(fd, &buf);
-                process_events(watches, &buf);
-            }
-        }
-
-        close(fd);
-        PCHECK(wait(NULL) >= 0) << "wait";
+        watch_child();
     } else {
         argc--;
         argv++;
