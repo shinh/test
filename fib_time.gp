@@ -1,6 +1,7 @@
 set terminal gif
-set output "fib_time2.gif"
-fit x*x*a 'fib_time.dat' via a
+set output "fib_time_rb.gif"
+fit x*x*a 'fib_time_rb.dat' via a
 b=2
-fit x**b*c 'fib_time.dat' via b,c
-plot 'fib_time.dat', x*x*a, x**b*c
+FIT_LIMIT=1e-30
+fit x**b*c 'fib_time_rb.dat' via b,c
+plot 'fib_time_rb.dat', x*x*a, x**b*c
