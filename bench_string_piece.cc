@@ -56,7 +56,20 @@ int main() {
     BENCH("Sp(string, const char*)",
           JoinFilePathSp(dir, "hoge.c", &joined));
     BENCH("Sp(const char*, string)",
-          JoinFilePathSp("/tmp", "hoge.c", &joined));
+          JoinFilePathSp("/tmp", base, &joined));
     BENCH("Sp(string, string)",
           JoinFilePathSp(dir, base, &joined));
 }
+
+#if 0
+int main() {
+    const string& dir = "/tmp";
+    const string& base = "hoge.c";
+    string joined;
+
+    JoinFilePathSp(dir, base, &joined);
+    JoinFilePathSp("/tmp", base, &joined);
+    JoinFilePathSp(dir, "hoge.c", &joined);
+    JoinFilePathSp("/tmp", "hoge.c", &joined);
+}
+#endif
