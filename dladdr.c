@@ -5,9 +5,18 @@ void f() {
     puts("F");
 }
 int main() {
-    //dlopen("a.out", RTLD_NOW);
     Dl_info info;
-    if (dladdr(&f, &info)) {
+
+    //dlopen("a.out", RTLD_NOW);
+    if (dladdr(&f, &info) && info.dli_sname) {
         printf("%s\n", info.dli_sname);
+    }
+    printf("base of f: %p\n", info.dli_fbase);
+
+    if (dladdr(&dladdr, &info)) {
+        printf("base of dladdr: %p %s\n", info.dli_fbase, info.dli_fname);
+    }
+    if (dladdr(&printf, &info)) {
+        printf("base of printf: %p %s\n", info.dli_fbase, info.dli_fname);
     }
 }
