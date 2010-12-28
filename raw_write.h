@@ -20,55 +20,57 @@
 
 #include <sys/syscall.h>
 
-#define RAW_WRITE(fd, buf, count)                           \
-    do {                                                    \
-        __asm__ volatile("syscall;\n"::                     \
-                         "a"(SYS_write),                    \
-                         "D"(fd),                           \
-                         "S"(buf),                          \
-                         "d"(count):                        \
-                         "rcx", "r11", "memory", "cc");     \
-        /* The input registers may be broken by syscall */  \
-        __asm__ volatile("":::"rax", "rdi", "rsi", "rdx");  \
+#define RAW_WRITE(fd, buf, count)                                       \
+    do {                                                                \
+        register unsigned long RAW_rsi##__LINE__ __asm__("rsi") =       \
+            (unsigned long)buf;                                         \
+        __asm__ volatile("syscall;\n":                                  \
+                         "+r"(RAW_rsi##__LINE__):                       \
+                         "a"(SYS_write),                                \
+                         "D"(fd),                                       \
+                         "d"(count):                                    \
+                         "r8", "r10", "rcx", "r11", "memory", "cc");    \
+        /* The input registers may be broken by syscall */              \
+        __asm__ volatile("":::"rax", "rdi", "rdx");                     \
     } while (0)
 
-#define RAW_PRINT_STR(buf)                      \
-    do {                                        \
-        int i;                                  \
-        const char *p = buf;                    \
-        for (i = 0; p[i]; i++) {}               \
-        RAW_WRITE(2, p, i);                     \
+#define RAW_PRINT_STR(buf)                          \
+    do {                                            \
+        const char *RAW_p##__LINE__ = buf;          \
+        int i;                                      \
+        for (i = 0; RAW_p##__LINE__[i]; i++) {}     \
+        RAW_WRITE(2, RAW_p##__LINE__, i);           \
     } while (0)
 
-#define RAW_PRINT_BASE_N(num, base)             \
-    do {                                        \
-        int was_minus = 0;                      \
-        char buf[21];                           \
-        char *p = buf + 20;                     \
-        int l = 0;                              \
-        long long n = (long long)num;           \
-        int b = base;                           \
-        if (n < 0) {                            \
-            was_minus = 1;                      \
-            n = -n;                             \
-        }                                       \
-        do {                                    \
-            int v = n % b;                      \
-            if (v > 9)                          \
-                *p = 'a' + v - 10;              \
-            else                                \
-                *p = '0' + v;                   \
-            l++;                                \
-            n /= b;                             \
-            p--;                                \
-        } while (n != 0);                       \
-        if (was_minus) {                        \
-            *p = '-';                           \
-            l++;                                \
-        } else {                                \
-            p++;                                \
-        }                                       \
-        RAW_WRITE(2, p, l);                     \
+#define RAW_PRINT_BASE_N(num, base)                     \
+    do {                                                \
+        long long RAW_n##__LINE__ = (long long)num;     \
+        int RAW_b##__LINE__ = base;                     \
+        int was_minus = 0;                              \
+        char buf[21];                                   \
+        char *p = buf + 20;                             \
+        int l = 0;                                      \
+        if (RAW_n##__LINE__ < 0) {                      \
+            was_minus = 1;                              \
+            RAW_n##__LINE__ = -RAW_n##__LINE__;         \
+        }                                               \
+        do {                                            \
+            int v = RAW_n##__LINE__ % RAW_b##__LINE__;  \
+            if (v > 9)                                  \
+                *p = 'a' + v - 10;                      \
+            else                                        \
+                *p = '0' + v;                           \
+            l++;                                        \
+            RAW_n##__LINE__ /= RAW_b##__LINE__;         \
+            p--;                                        \
+        } while (RAW_n##__LINE__ != 0);                 \
+        if (was_minus) {                                \
+            *p = '-';                                   \
+            l++;                                        \
+        } else {                                        \
+            p++;                                        \
+        }                                               \
+        RAW_WRITE(2, p, l);                             \
     } while (0)
 
 #define RAW_PRINT_HEX(num) RAW_PRINT_BASE_N(num, 16)
