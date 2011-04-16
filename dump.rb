@@ -19,10 +19,9 @@ end
 class Binding
   def dump(expr)
     sandbox = Sandbox.new(self)
-
     result = sandbox.instance_eval(expr)
     sandbox.resolved.each do |name, value|
-      expr.gsub!(/\b#{name}\b/){"#{name}(#{value})"}
+      expr.gsub!(/\b#{name}\b/){"(#{name}=#{value})"}
     end
     puts "#{result} = #{expr}"
   end
