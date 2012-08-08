@@ -1,0 +1,28 @@
+<script>
+function fizzbuzz() {
+  for (var i = 0; i < 100; i++) {
+    document.body.appendChild(document.createElement('div'));
+  }
+}
+</script>
+
+<style>
+div {
+  counter-increment:c;
+}
+div:before {
+  content: counter(c);
+}
+div:nth-child(5n):before {
+  content: "";
+}
+div:nth-child(3n):before {
+  content: "Fizz";
+}
+div:nth-child(5n):after {
+  content: "Buzz";
+}
+</style>
+
+<body onload="fizzbuzz()">
+</body>
