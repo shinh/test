@@ -10,11 +10,8 @@ function fizzbuzz() {
 div {
   counter-increment:c;
 }
-div:before {
+div:nth-child(3n+1):after, div:nth-child(3n+2):after {
   content: counter(c);
-}
-div:nth-child(5n):before {
-  content: "";
 }
 div:nth-child(3n):before {
   content: "Fizz";
