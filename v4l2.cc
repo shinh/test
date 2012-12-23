@@ -13,7 +13,7 @@
 #include <SDL.h>
 
 struct Buffer {
-  void* start;
+  char* start;
   size_t length;
 };
 
@@ -69,6 +69,21 @@ int main(int argc, char* argv[]) {
 
   const struct v4l2_pix_format& pix_fmt = format.fmt.pix;
   char fmt_buf[5];
+  fmt_buf[0] = (pix_fmt.pixelformat & 0xFF);
+  fmt_buf[1] = (pix_fmt.pixelformat >> 8) & 0xFF;
+  fmt_buf[2] = (pix_fmt.pixelformat >> 16) & 0xFF;
+  fmt_buf[3] = (pix_fmt.pixelformat >> 24) & 0xFF;
+  fmt_buf[4] = 0;
+  printf("w=%u h=%u fmt=%s field=%u bypl=%u sz=%u cs=%u priv=%u\n",
+         pix_fmt.width, pix_fmt.height, fmt_buf,
+         pix_fmt.field, pix_fmt.bytesperline, pix_fmt.sizeimage,
+         pix_fmt.colorspace, pix_fmt.priv);
+
+  //format.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB24;
+  if (v4l2_ioctl(fd, VIDIOC_S_FMT, &format) < 0) {
+    perror("v4l2_ioctl VIDIOC_S_FMT");
+    exit(EXIT_FAILURE);
+  }
   fmt_buf[0] = (pix_fmt.pixelformat & 0xFF);
   fmt_buf[1] = (pix_fmt.pixelformat >> 8) & 0xFF;
   fmt_buf[2] = (pix_fmt.pixelformat >> 16) & 0xFF;
@@ -136,7 +151,7 @@ int main(int argc, char* argv[]) {
   if (v4l2_ioctl(fd, VIDIOC_REQBUFS, &reqbuf) < 0) {
     if (errno == EINVAL)
       fprintf(stderr,
-              "Video capturing or user pointer streaming is not supported\n");
+              "Video capturing or mmap streaming is not supported\n");
     else
       perror("v4l2_ioctl VIDIOC_REQBUFS");
     exit(EXIT_FAILURE);
@@ -152,9 +167,9 @@ int main(int argc, char* argv[]) {
   Buffer* buffers = (Buffer*)calloc(reqbuf.count, sizeof(*buffers));
   assert(buffers != NULL);
 
+  printf("mmap:");
   for (size_t i = 0; i < reqbuf.count; i++) {
     struct v4l2_buffer buffer;
-
     memset(&buffer, 0, sizeof (buffer));
     buffer.type = reqbuf.type;
     buffer.memory = V4L2_MEMORY_MMAP;
@@ -165,18 +180,107 @@ int main(int argc, char* argv[]) {
     }
 
     buffers[i].length = buffer.length; /* remember for munmap() */
+    buffers[i].start = (char*)mmap(NULL, buffer.length,
+                                   PROT_READ | PROT_WRITE, /* recommended */
+                                   MAP_SHARED,             /* recommended */
+                                   fd, buffer.m.offset);
 
-    buffers[i].start = mmap(NULL, buffer.length,
-                            PROT_READ | PROT_WRITE, /* recommended */
-                            MAP_SHARED,             /* recommended */
-                            fd, buffer.m.offset);
-
+    printf(" %lu:%p+%lu", i, buffers[i].start, buffers[i].length);
     if (MAP_FAILED == buffers[i].start) {
       /* If you do not exit here you should unmap() and free()
          the buffers mapped so far. */
       perror("mmap");
       exit(EXIT_FAILURE);
     }
+  }
+  puts("");
+
+  for (size_t i = 0; i < reqbuf.count; i++) {
+    struct v4l2_buffer buffer;
+    memset(&buffer, 0, sizeof (buffer));
+    buffer.type = reqbuf.type;
+    buffer.memory = V4L2_MEMORY_MMAP;
+    buffer.index = i;
+
+    if (v4l2_ioctl(fd, VIDIOC_QBUF, &buffer) < 0) {
+      perror("VIDIOC_QBUF");
+      exit(EXIT_FAILURE);
+    }
+  }
+
+  if (v4l2_ioctl(fd, VIDIOC_STREAMON, &reqbuf.type) < 0) {
+    perror("v4l2_ioctl VIDIOC_STREAMON");
+    exit(EXIT_FAILURE);
+  }
+
+  SDL_Init(SDL_INIT_VIDEO);
+
+  const int W = pix_fmt.width;
+  const int H = pix_fmt.height;
+
+  SDL_Surface* scr = SDL_SetVideoMode(W, H, 16, SDL_SWSURFACE);
+  //SDL_Surface* scr = SDL_SetVideoMode(W, H, 32, SDL_SWSURFACE);
+  assert(scr);
+  printf("Screen: pitch=%d bpp=%d rs=%d gs=%d bs=%d rm=%d gm=%d bm=%d\n",
+         scr->pitch, scr->format->BitsPerPixel,
+         scr->format->Rshift, scr->format->Gshift, scr->format->Bshift,
+         scr->format->Rmask, scr->format->Gmask, scr->format->Bmask);
+
+  //assert(scr->pitch == pix_fmt.bytesperline);
+
+  bool done = false;
+  while (!done) {
+    struct v4l2_buffer buffer;
+    memset(&buffer, 0, sizeof (buffer));
+    buffer.type = reqbuf.type;
+    buffer.memory = V4L2_MEMORY_MMAP;
+
+    if (v4l2_ioctl(fd, VIDIOC_DQBUF, &buffer) < 0) {
+      perror("VIDIOC_DQBUF");
+      exit(EXIT_FAILURE);
+    }
+
+    printf("%u\n", buffer.index);
+
+    const Buffer& buf = buffers[buffer.index];
+#if 1
+    for (size_t y = 0; y < pix_fmt.height; y++) {
+      Uint16* src = (Uint16*)(buf.start + y * pix_fmt.bytesperline);
+      Uint16* dst = (Uint16*)((char*)scr->pixels + y * scr->pitch);
+      for (size_t x = 0; x < pix_fmt.width; x++) {
+        Uint16 rgb = *src;
+        Uint16 r = rgb & 31;
+        Uint16 g = (rgb >> 6) & 31;
+        Uint16 b = rgb >> 11;
+#if 0
+        *dst = SDL_MapRGB(scr->format, r << 3, g << 3, b << 3);
+#else
+        *dst = ((r << scr->format->Rshift) |
+                (g << scr->format->Gshift) |
+                (b << scr->format->Bshift));
+#endif
+        src++;
+        dst++;
+      }
+    }
+#else
+    memcpy(scr->pixels, buf.start, pix_fmt.sizeimage);
+#endif
+
+    if (v4l2_ioctl(fd, VIDIOC_QBUF, &buffer) < 0) {
+      perror("VIDIOC_QBUF");
+      exit(EXIT_FAILURE);
+    }
+
+    SDL_Event ev;
+    while (SDL_PollEvent(&ev)) {
+      switch (ev.type) {
+      case SDL_QUIT:
+        done = true;
+        break;
+      }
+    }
+    SDL_Flip(scr);
   }
 
 #if 0
@@ -249,6 +353,9 @@ int main(int argc, char* argv[]) {
     }
   }
 #endif
+
+  for (size_t i = 0; i < reqbuf.count; i++)
+    munmap(buffers[i].start, buffers[i].length);
 
   v4l2_close(fd);
 }
