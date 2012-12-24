@@ -15,6 +15,7 @@
 struct Buffer {
   char* start;
   size_t length;
+  SDL_Surface* surface;
 };
 
 int main(int argc, char* argv[]) {
@@ -28,6 +29,8 @@ int main(int argc, char* argv[]) {
     perror("v4l2_open");
     exit(EXIT_FAILURE);
   }
+
+  SDL_Init(SDL_INIT_VIDEO);
 
 /*
   $2 = {
@@ -80,6 +83,7 @@ int main(int argc, char* argv[]) {
          pix_fmt.colorspace, pix_fmt.priv);
 
   //format.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB24;
+  format.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB565;
   if (v4l2_ioctl(fd, VIDIOC_S_FMT, &format) < 0) {
     perror("v4l2_ioctl VIDIOC_S_FMT");
     exit(EXIT_FAILURE);
@@ -89,6 +93,8 @@ int main(int argc, char* argv[]) {
   fmt_buf[2] = (pix_fmt.pixelformat >> 16) & 0xFF;
   fmt_buf[3] = (pix_fmt.pixelformat >> 24) & 0xFF;
   fmt_buf[4] = 0;
+  const int W = pix_fmt.width;
+  const int H = pix_fmt.height;
   printf("w=%u h=%u fmt=%s field=%u bypl=%u sz=%u cs=%u priv=%u\n",
          pix_fmt.width, pix_fmt.height, fmt_buf,
          pix_fmt.field, pix_fmt.bytesperline, pix_fmt.sizeimage,
@@ -142,6 +148,12 @@ int main(int argc, char* argv[]) {
     exit(EXIT_FAILURE);
   }
 
+  v4l2_std_id new_std_id = V4L2_STD_NTSC_M_JP;
+  if (v4l2_ioctl(fd, VIDIOC_S_STD, &new_std_id) < 0) {
+    perror("v4l2_ioctl VIDIOC_S_STD");
+    exit(EXIT_FAILURE);
+  }
+
   struct v4l2_requestbuffers reqbuf;
   memset(&reqbuf, 0, sizeof (reqbuf));
   reqbuf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -184,6 +196,9 @@ int main(int argc, char* argv[]) {
                                    PROT_READ | PROT_WRITE, /* recommended */
                                    MAP_SHARED,             /* recommended */
                                    fd, buffer.m.offset);
+    buffers[i].surface = SDL_CreateRGBSurfaceFrom(buffers[i].start,
+                                                  W, H, 16, W*2,
+                                                  31, 63 << 5, 31 << 11, 0);
 
     printf(" %lu:%p+%lu", i, buffers[i].start, buffers[i].length);
     if (MAP_FAILED == buffers[i].start) {
@@ -213,11 +228,6 @@ int main(int argc, char* argv[]) {
     exit(EXIT_FAILURE);
   }
 
-  SDL_Init(SDL_INIT_VIDEO);
-
-  const int W = pix_fmt.width;
-  const int H = pix_fmt.height;
-
   SDL_Surface* scr = SDL_SetVideoMode(W, H, 16, SDL_SWSURFACE);
   //SDL_Surface* scr = SDL_SetVideoMode(W, H, 32, SDL_SWSURFACE);
   assert(scr);
@@ -240,9 +250,10 @@ int main(int argc, char* argv[]) {
       exit(EXIT_FAILURE);
     }
 
-    printf("%u\n", buffer.index);
+    //printf("%u\n", buffer.index);
 
     const Buffer& buf = buffers[buffer.index];
+#if 0
 #if 1
     for (size_t y = 0; y < pix_fmt.height; y++) {
       Uint16* src = (Uint16*)(buf.start + y * pix_fmt.bytesperline);
@@ -265,6 +276,10 @@ int main(int argc, char* argv[]) {
     }
 #else
     memcpy(scr->pixels, buf.start, pix_fmt.sizeimage);
+#endif
+
+#else
+    SDL_BlitSurface(buf.surface, NULL, scr, NULL);
 #endif
 
     if (v4l2_ioctl(fd, VIDIOC_QBUF, &buffer) < 0) {
