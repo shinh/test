@@ -250,7 +250,7 @@ int main(int argc, char* argv[]) {
       for (size_t x = 0; x < pix_fmt.width; x++) {
         Uint16 rgb = *src;
         Uint16 r = rgb & 31;
-        Uint16 g = (rgb >> 6) & 31;
+        Uint16 g = (rgb >> 5) & 63;
         Uint16 b = rgb >> 11;
 #if 0
         *dst = SDL_MapRGB(scr->format, r << 3, g << 3, b << 3);
