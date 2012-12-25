@@ -196,9 +196,11 @@ int main(int argc, char* argv[]) {
                                    PROT_READ | PROT_WRITE, /* recommended */
                                    MAP_SHARED,             /* recommended */
                                    fd, buffer.m.offset);
+    // This document says rmask and bmask should be swapped, but hmm?
+    // http://linuxtv.org/downloads/v4l-dvb-apis/packed-rgb.html
     buffers[i].surface = SDL_CreateRGBSurfaceFrom(buffers[i].start,
                                                   W, H, 16, W*2,
-                                                  31, 63 << 5, 31 << 11, 0);
+                                                  31 << 11, 63 << 5, 31, 0);
 
     printf(" %lu:%p+%lu", i, buffers[i].start, buffers[i].length);
     if (MAP_FAILED == buffers[i].start) {
@@ -293,6 +295,12 @@ int main(int argc, char* argv[]) {
       case SDL_QUIT:
         done = true;
         break;
+      case SDL_KEYDOWN:
+        switch (ev.key.keysym.sym) {
+        case SDLK_s:
+          SDL_SaveBMP(scr, "/tmp/v4l2.bmp");
+          break;
+        }
       }
     }
     SDL_Flip(scr);
