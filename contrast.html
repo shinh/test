@@ -1,0 +1,256 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html> <head>
+<title>contrast adjuster</title>
+
+<script>
+
+function $(i) {
+  return document.getElementById(i);
+}
+
+function toHex1(v) {
+  return "0123456789abcdef"[v];
+}
+
+function toHex2(v) {
+  return toHex1(v / 16 | 0) + toHex1(v % 16);
+}
+
+function toHex(r, g, b) {
+  return toHex2(r) + toHex2(g) + toHex2(b);
+}
+
+function fromHex1(h) {
+  return "0123456789abcdef".indexOf(h);
+}
+
+function fromHex2(h) {
+  return fromHex1(h.substr(0, 1)) * 16 + fromHex1(h.substr(1, 1));
+}
+
+function fromHex(h) {
+  if (h[0] == '#')
+    h = h.substr(1);
+  var r = fromHex2(h.substr(0, 2));
+  var g = fromHex2(h.substr(2, 2));
+  var b = fromHex2(h.substr(4, 2));
+  return [r, g, b];
+}
+
+function toHSV(r, g, b) {
+  var mx = Math.max(r, g, b);
+  var mn = Math.min(r, g, b);
+  var h;
+  if (mx == mn) {
+    h = 180;
+  } else if (mx == r) {
+    h = 60 * (g - b) / (mx - mn);
+  } else if (mx == g) {
+    h = 60 * (b - r) / (mx - mn) + 120;
+  } else if (mx == b) {
+    h = 60 * (r - g) / (mx - mn) + 240;
+  } else {
+    return [0, 0, 0];
+  }
+  if (h < 0) h += 360;
+  var s = mx == 0 ? 0 : (mx - mn) / mx * 255;
+  var v = mx;
+  return [h, s, v];
+}
+
+function fromHSV(hsv) {
+  var h = hsv[0];
+  var s = hsv[1] / 255;
+  var v = hsv[2];
+  if (s <= 0) {
+    return [v, v, v];
+  }
+  h = (36000 + h) % 360;
+  var hi = h / 60 | 0;
+  var f = h / 60 - hi;
+  var p = v * (1 - s);
+  var q = v * (1 - f * s);
+  var t = v * (1 - (1 - f) * s);
+  switch (hi) {
+  case 0:
+    return [v, t, p];
+  case 1:
+    return [q, v, p];
+  case 2:
+    return [p, v, t];
+  case 3:
+    return [p, q, v];
+  case 4:
+    return [t, p, v];
+  case 5:
+    return [v, p, q];
+  }
+}
+
+function nth(parent, name, n) {
+  for (var i = 0; i < parent.children.length; i++) {
+    var c = parent.children[i];
+    if (c.tagName == name && !n--) {
+      return c;
+    }
+  }
+  return null;
+}
+
+function updateCol(t, hex) {
+  var tr = $(t + '_tr');
+  var td = nth(tr, 'TD', 3);
+  nth(td, 'INPUT', 0).value = hex;
+}
+
+function updateBG(t, r, g, b) {
+  var hex = '#' + toHex(r, g, b);
+  $(t).style.backgroundColor = hex;
+  updateCol(t, hex);
+}
+
+function updateRGB(t, r, g, b) {
+  var tr = $(t + '_tr');
+  var td = nth(tr, 'TD', 1);
+  nth(td, 'INPUT', 0).value = r;
+  nth(td, 'INPUT', 1).value = g;
+  nth(td, 'INPUT', 2).value = b;
+}
+
+function updateHSV(t, r, g, b) {
+  var hsv = toHSV(r, g, b);
+  var tr = $(t + '_tr');
+  var td = nth(tr, 'TD', 2);
+  for (var i = 0; i < 3; i++) {
+    nth(td, 'INPUT', i).value = hsv[i];
+  }
+}
+
+function updateURL() {
+  var q = '#';
+  for (var i = 0; i < 3; i++) {
+    var t = ['main', 'sub', 'accent'][i];
+    var tr = $(t + '_tr');
+    var td = nth(tr, 'TD', 3);
+    q += nth(td, 'INPUT', 0).value.substr(1);
+  }
+  location.href = q;
+}
+
+function rgb(t) {
+  var tr = $(t + '_tr');
+  var td = nth(tr, 'TD', 1);
+  var r = nth(td, 'INPUT', 0).value;
+  var g = nth(td, 'INPUT', 1).value;
+  var b = nth(td, 'INPUT', 2).value;
+  updateBG(t, r, g, b);
+  updateHSV(t, r, g, b);
+  updateURL();
+}
+
+function hsv(t) {
+  var tr = $(t + '_tr');
+  var td = nth(tr, 'TD', 2);
+  var hsv = [0, 0, 0];
+  for (var i = 0; i < 3; i++) {
+    hsv[i] = nth(td, 'INPUT', i).value;
+  }
+  var a = fromHSV(hsv);
+  var r = a[0] | 0;
+  var g = a[1] | 0;
+  var b = a[2] | 0;
+  updateBG(t, r, g, b);
+  updateRGB(t, r, g, b);
+  updateURL();
+}
+
+function col(t, no_update_url) {
+  var tr = $(t + '_tr');
+  var td = nth(tr, 'TD', 3);
+  var a = fromHex(nth(td, 'INPUT', 0).value);
+  var r = a[0];
+  var g = a[1];
+  var b = a[2];
+  updateBG(t, r, g, b);
+  updateRGB(t, r, g, b);
+  updateHSV(t, r, g, b);
+  if (!no_update_url)
+    updateURL();
+}
+
+function load() {
+  var hash = location.hash.substr(1);
+  if (!hash)
+    return;
+  for (var i = 0; i < 3; i++) {
+    var t = ['main', 'sub', 'accent'][i];
+    var hex = '#' + hash.substr(i * 6, 6);
+    updateCol(t, hex);
+    col(t, true);
+  }
+}
+
+</script>
+
+</head>
+
+<body onload="load()">
+<h1>Contrast adjuster</h1>
+
+<p>
+
+<div style="width: 200px; height: 200px;" id="main">
+
+<div style="width: 30px; height: 30px; left: 20px; top: 20px; position: relative;" id="accent">
+
+<div style="width: 100px; height: 150px; top: 5px; left: 70px; position: relative;" id="sub">
+</div>
+
+</div>
+
+</div>
+
+<p>
+<table>
+  <tr>
+    <td>
+    <td>RGB
+    <td>HSV
+  <tr id="main_tr">
+    <td>main
+    <td><input size=3 maxlength=3 onkeyup="rgb('main')">
+        <input size=3 maxlength=3 onkeyup="rgb('main')">
+        <input size=3 maxlength=3 onkeyup="rgb('main')">
+    <td><input size=3 maxlength=3 onkeyup="hsv('main')">
+        <input size=3 maxlength=3 onkeyup="hsv('main')">
+        <input size=3 maxlength=3 onkeyup="hsv('main')">
+    <td><input type="color" onchange="col('main')">
+  </tr>
+  <tr id="sub_tr">
+    <td>sub
+    <td><input size=3 maxlength=3 onkeyup="rgb('sub')">
+        <input size=3 maxlength=3 onkeyup="rgb('sub')">
+        <input size=3 maxlength=3 onkeyup="rgb('sub')">
+    <td><input size=3 maxlength=3 onkeyup="hsv('sub')">
+        <input size=3 maxlength=3 onkeyup="hsv('sub')">
+        <input size=3 maxlength=3 onkeyup="hsv('sub')">
+    <td><input type="color" onchange="col('sub')">
+  </tr>
+  <tr id="accent_tr">
+    <td>accent
+    <td><input size=3 maxlength=3 onkeyup="rgb('accent')">
+        <input size=3 maxlength=3 onkeyup="rgb('accent')">
+        <input size=3 maxlength=3 onkeyup="rgb('accent')">
+    <td><input size=3 maxlength=3 onkeyup="hsv('accent')">
+        <input size=3 maxlength=3 onkeyup="hsv('accent')">
+        <input size=3 maxlength=3 onkeyup="hsv('accent')">
+    <td><input type="color" onchange="col('accent')">
+  </tr>
+</table>
+
+<hr>
+<address></address>
+<!-- hhmts start -->
+Last modified: Sun Feb 24 16:26:14 JST 2013
+<!-- hhmts end -->
+</body> </html>
