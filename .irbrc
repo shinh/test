@@ -48,15 +48,15 @@ def xclip(s)
   s
 end
 
-class Fixnum
-  def combination(x)
-    raise ArgumentError.new if self < x
-    r = 1
-    x.times{|i|r *= self - i}
-    2.upto(x){|i|r /= i}
-    r
-  end
+def combination(x, y)
+  raise ArgumentError.new if x < y || y < 0
+  r = 1
+  (x - y + 1).upto(x){|i|r *= i}
+  2.upto(y){|i|r /= i}
+  r
+end
 
+class Fixnum
   def cuint
     self & ((1 << 32) - 1)
   end
