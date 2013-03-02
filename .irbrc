@@ -52,8 +52,8 @@ class Fixnum
   def combination(x)
     raise ArgumentError.new if self < x
     r = 1
-    (x+1).upto(self){|i|r *= i}
-    2.upto(x-1){|i|r /= i}
+    x.times{|i|r *= self - i}
+    2.upto(x){|i|r /= i}
     r
   end
 
