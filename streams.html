@@ -1,0 +1,214 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html> <head>
+<title>streams</title>
+
+<style>
+body {
+  font-size: x-large;
+}
+
+.box {
+  border: solid black 1px;
+  width: 50px;
+  height: 50px;
+  font-size: x-large;
+}
+
+</style>
+
+<script>
+
+var boxes = [];
+var rndgen;
+var inputs;
+var turn;
+var TABLE = [null,0,1,3,5,7,3,10,15,20,25,30,20,40,50,60,70,50,100,150,300];
+
+function $(id) {
+  return document.getElementById(id);
+}
+
+function load() {
+  var table = document.createElement('table');
+  $('board').appendChild(table);
+  for (var i = 0; i < 4; i++) {
+    var tr = document.createElement('tr');
+    table.appendChild(tr);
+    for (var j = 0; j < 5; j++) {
+      var td = document.createElement('td');
+      tr.appendChild(td);
+      var div = document.createElement('div');
+      td.appendChild(div);
+
+      div.className = 'box';
+      var n = i * 5 + j;
+      div.id = "c" + n;
+      div.onclick = click;
+      td.appendChild(div);
+      boxes.push(div);
+    }
+  }
+
+  var table = document.createElement('table');
+  table.border = 1;
+  $('tbl').appendChild(table);
+  var tr = document.createElement('tr');
+  table.appendChild(tr);
+  for (var i = 1; i <= 20; i++) {
+    var td = document.createElement('td');
+    tr.appendChild(td);
+    td.innerHTML = i;
+  }
+  var tr = document.createElement('tr');
+  table.appendChild(tr);
+  for (var i = 1; i <= 20; i++) {
+    var td = document.createElement('td');
+    tr.appendChild(td);
+    td.innerHTML = TABLE[i];
+  }
+
+  init(1);
+}
+
+function rnd(v) {
+  rndgen = ((rndgen * 16807) + 31) % 65535;
+  return rndgen % v;
+}
+
+function random_init() {
+  var r = Math.random() * 10000 | 0;
+  $('seed').value = r;
+  init();
+}
+
+function init(seed) {
+  if (!seed) {
+    seed = $('seed').value;
+  }
+
+  rndgen = seed;
+  for (var i = 0; i < 100; i++) {
+    rnd(1);
+  }
+  console.log(rndgen);
+
+  for (var i = 0; i < 20; i++) {
+    var cell = $('c' + i);
+    cell.innerHTML = '';
+  }
+
+  inputs = [];
+  for (var i = 1; i <= 10; i++) {
+    inputs.push(i);
+  }
+  for (var i = 11; i <= 19; i++) {
+    inputs.push(i);
+    inputs.push(i);
+  }
+  for (var i = 20; i <= 30; i++) {
+    inputs.push(i);
+  }
+  inputs.push('J');
+
+  console.log(inputs);
+  for (var i = 0; i < inputs.length; i++) {
+    var j = rnd(inputs.length - i) + i;
+    var t = inputs[j];
+    inputs[j] = inputs[i];
+    inputs[i] = t;
+  }
+  console.log(inputs);
+  turn = 0;
+
+  show();
+}
+
+function click(event) {
+  var cell = event.toElement;
+  if (cell.innerHTML)
+    return;
+  cell.innerHTML = inputs[turn];
+  turn++;
+  show();
+}
+
+function show() {
+  $('next').innerHTML = turn >= 20 ? 'END' : inputs[turn];
+
+  values = [];
+  for (var i = 0; i < 20; i++) {
+    values[i] = $('c' + i).innerHTML;
+  }
+  $('seq').innerHTML = values.join('-');
+
+  var max_score = 0;
+  var score_detail = '';
+  for (var j = 1; j <= 30; j++) {
+    var scores = [];
+    var prev = 0;
+    var len = 0;
+    for (var i = 0; i < 20; i++) {
+      var v = values[i];
+      if (v == 'J')
+        v = j;
+      v |= 0;
+
+      if (prev > v || prev == 0) {
+        if (TABLE[len])
+          scores.push(TABLE[len]);
+        len = 0;
+      }
+
+      prev = v;
+      len++;
+    }
+    if (TABLE[len])
+      scores.push(TABLE[len]);
+
+    var score = 0;
+    for (var i = 0; i < scores.length; i++) {
+      score += scores[i];
+    }
+    if (max_score < score) {
+      max_score = score;
+      score_detail = scores.join('+');
+    }
+  }
+  $('score').innerHTML = score + ' (' + score_detail + ')';
+
+  $('cp').innerHTML = ('seed' + $('seed').value + ' ' +
+                       $('score').innerHTML + ' ' +
+                       $('seq').innerHTML);
+}
+
+</script>
+
+</head>
+
+<body onload="load()">
+<h1>streams</h1>
+
+<p>
+  Next:
+  <span id="next"></span>
+</p>
+
+<div id="board"></div>
+
+<p>
+seq: <span id="seq"></span>
+<br>
+score: <span id="score"></span>
+
+<p id="tbl">
+
+<p>
+seed: <input id="seed" value="1">
+<input type="button" value="init" onclick="init()">
+<input type="button" value="random" onclick="random_init()">
+
+<p>
+for copy&paste:<br>
+<span id="cp"></span>
+
+</body> </html>
