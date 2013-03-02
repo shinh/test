@@ -1,6 +1,11 @@
 #!ruby
 require 'irb/completion'
+require 'irb/ext/save-history'
 require 'tempfile'
+
+IRB.conf[:SAVE_HISTORY] = 100000
+IRB.conf[:HISTORY_FILE] = "#{ENV['HOME']}/.irb_history"
+
 def disasm(b, arch = 'i386')
   tmp = Tempfile.new('irb_disasm', '/tmp')
   if b.class == Array
