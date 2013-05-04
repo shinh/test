@@ -1,0 +1,19 @@
+[color]
+	branch = auto
+	diff = auto
+	status = auto
+[core]
+	pager = lv -c
+[user]
+	email = shinichiro.hamaji@gmail.com
+[alias]
+	co = checkout
+	br = branch -v
+	rb = rebase
+        gerp = grep
+        gp = grep
+        gr = grep
+        ls = log --pretty=format:"%C(auto,yellow)%h%C(auto,red)%d\\ %C(auto,reset)%s%C(auto,blue)\\ [%cn]" --decorate
+        ll = log --pretty=format:"%C(auto,yellow)%h%C(auto,red)%d\\ %C(auto,reset)%s%C(auto,blue)\\ [%cn]" --decorate --numstat
+[push]
+	default = simple
