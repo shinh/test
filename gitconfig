@@ -13,8 +13,10 @@
         gerp = grep
         gp = grep
         gr = grep
-        ls = log --pretty=format:"%C(auto,yellow)%h%C(auto,red)%d\\ %C(auto,reset)%s%C(auto,blue)\\ [%cn]" --decorate
-        ll = log --pretty=format:"%C(auto,yellow)%h%C(auto,red)%d\\ %C(auto,reset)%s%C(auto,blue)\\ [%cn]" --decorate --numstat
+        ls = log --pretty=format:"%C(yellow)%h%C(red)%d\\ %C(reset)%s%C(blue)\\ [%cn]" --decorate
+        ll = log --pretty=format:"%C(yellow)%h%C(red)%d\\ %C(reset)%s%C(blue)\\ [%cn]" --decorate --numstat
+#        ls = log --pretty=format:"%C(auto,yellow)%h%C(auto,red)%d\\ %C(auto,reset)%s%C(auto,blue)\\ [%cn]" --decorate
+#        ll = log --pretty=format:"%C(auto,yellow)%h%C(auto,red)%d\\ %C(auto,reset)%s%C(auto,blue)\\ [%cn]" --decorate --numstat
 	d = diff
 [push]
 	default = simple
