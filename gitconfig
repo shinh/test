@@ -18,5 +18,6 @@
 #        ls = log --pretty=format:"%C(auto,yellow)%h%C(auto,red)%d\\ %C(auto,reset)%s%C(auto,blue)\\ [%cn]" --decorate
 #        ll = log --pretty=format:"%C(auto,yellow)%h%C(auto,red)%d\\ %C(auto,reset)%s%C(auto,blue)\\ [%cn]" --decorate --numstat
 	d = diff
+	dt = diff-tree -p
 [push]
 	default = simple
