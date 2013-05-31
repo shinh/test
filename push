@@ -1,0 +1,13 @@
+#!/bin/sh
+
+if git add -nu | grep -e . ; then
+  echo '*** dirty tree detected ***'
+  exit 1
+fi
+
+if git status -uno -s | grep -e . ; then
+  echo '*** uncommitted change detected ***'
+  exit 1
+fi
+
+git push "$@"
