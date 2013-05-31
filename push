@@ -1,5 +1,11 @@
 #!/bin/sh
 
+# Check if we are in a git repository.
+if ! git status > /dev/null; then
+  # Error message is already shown by git.
+  exit 1
+fi
+
 if git add -nu | grep -e . ; then
   echo '*** dirty tree detected ***'
   exit 1
