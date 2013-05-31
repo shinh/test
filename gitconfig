@@ -20,5 +20,6 @@
 #        ll = log --pretty=format:"%C(auto,yellow)%h%C(auto,red)%d\\ %C(auto,reset)%s%C(auto,blue)\\ [%cn]" --decorate --numstat
 	d = diff
 	dt = diff-tree -p
+	st = status -uno -s
 [push]
 	default = simple
