@@ -86,6 +86,14 @@ struct TSXCommitPolicy {
   }
 };
 
+struct GCCTransactionCommitPolicy {
+  static void commit(unsigned int s) {
+    __transaction_atomic {
+      sum += s;
+    }
+  }
+};
+
 double getTime() {
   struct timeval tv;
   gettimeofday(&tv, NULL);
@@ -134,5 +142,6 @@ int main() {
   run<TSXCommitPolicy>("TSX", 100);
   printf("tsx_cnt=%d\n", tsx_cnt);
   tsx_cnt = 0;
+  run<GCCTransactionCommitPolicy>("transaction", 100);
   run<NoLockCommitPolicy>("nolock", 100);
 }
