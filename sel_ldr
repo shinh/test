@@ -1,0 +1,51 @@
+#!/usr/bin/env ruby
+
+bit = 64
+opt_B_found = false
+is_glibc = false
+
+sel_ldr_args = []
+main_args = []
+main_found = false
+
+ARGV.each do |a|
+  if a == '-B' && !opt_B_found
+    opt_B_found = true
+  elsif /^-/ !~ a && File.exist?(a)
+    filetype = `file #{a}`
+    if /32-bit/ =~ filetype
+      bit = 32
+    end
+    if /dynamically linked/ =~ filetype
+      is_glibc = true
+    end
+    main_found = true
+  end
+
+  if main_found
+    main_args << a
+  else
+    sel_ldr_args << a
+  end
+end
+
+args = ["sel_ldr_x86_#{bit}"]
+args += sel_ldr_args
+if !opt_B_found
+  args.push("-B")
+  if is_glibc
+    args.push("#{ENV['NACL_SDK_ROOT']}/tools/irt_core_x86_#{bit}.nexe")
+  else
+    args.push("#{ENV['NACL_SDK_ROOT']}/tools/irt_core_newlib_x86_#{bit}.nexe")
+  end
+end
+
+if is_glibc
+  args.push("#{ENV['NACL_SDK_ROOT']}/toolchain/linux_x86_glibc/x86_64-nacl/lib#{bit}/runnable-ld.so")
+  args.push("--library-path")
+  args.push("#{ENV['NACL_SDK_ROOT']}/toolchain/linux_x86_glibc/x86_64-nacl/lib#{bit}")
+end
+
+args += main_args
+puts args * ' '
+exec *args
