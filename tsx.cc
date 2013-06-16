@@ -5,6 +5,14 @@
 #include <time.h>
 #include <unistd.h>
 
+#if __GNUC__ * 100 + __GNUC_MINOR__ >= 407
+# define USE_INTRIN
+#endif
+
+#if defined(USE_INTRIN)
+# include <immintrin.h>
+#endif
+
 #include <chrono>
 #include <iostream>
 #include <random>
@@ -86,6 +94,22 @@ struct TSXCommitPolicy {
   }
 };
 
+#if defined(USE_INTRIN)
+struct TSXIntrinCommitPolicy {
+  static void commit(unsigned int s) {
+    retry:
+    int st = _xbegin();
+    if (st == _XBEGIN_STARTED) {
+      sum += s;
+      _xend();
+    } else {
+      //printf("%x\n", st);
+      goto retry;
+    }
+  }
+};
+#endif
+
 struct GCCTransactionCommitPolicy {
   static void commit(unsigned int s) {
     __transaction_atomic {
@@ -142,6 +166,11 @@ int main() {
   run<TSXCommitPolicy>("TSX", 100);
   printf("tsx_cnt=%d\n", tsx_cnt);
   tsx_cnt = 0;
+#if defined(USE_INTRIN)
+  run<TSXIntrinCommitPolicy>("TSXIntrin", 100);
+  printf("tsx_cnt=%d\n", tsx_cnt);
+  tsx_cnt = 0;
+#endif
   run<GCCTransactionCommitPolicy>("transaction", 100);
   run<NoLockCommitPolicy>("nolock", 100);
 }
