@@ -60,6 +60,15 @@ struct NoLockCommitPolicy {
 
 pthread_mutex_t mu = PTHREAD_MUTEX_INITIALIZER;
 struct MutexCommitPolicy {
+  MutexCommitPolicy() {
+#if 0
+    pthread_mutexattr_t attr;
+    pthread_mutexattr_init(&attr);
+    pthread_mutexattr_setelision_np(&attr, 256);
+    pthread_mutexattr_settype(&attr, 5);
+    pthread_mutex_init(&mu, &attr);
+#endif
+  }
   static void commit(int s) {
     pthread_mutex_lock(&mu);
     sum += s;
@@ -118,6 +127,36 @@ struct GCCTransactionCommitPolicy {
   }
 };
 
+template <bool use_hle>
+class SpinLock {
+public:
+  explicit SpinLock(char lock) : lock_(lock) {
+    int flags = __ATOMIC_ACQUIRE;
+    if (use_hle)
+      flags |= __ATOMIC_HLE_ACQUIRE;
+    while (__atomic_exchange_n(&lock_, 1, flags))
+      _mm_pause();
+  }
+  ~SpinLock() {
+    int flags = __ATOMIC_RELEASE;
+    if (use_hle)
+      flags |= __ATOMIC_HLE_RELEASE;
+    __atomic_clear(&lock_, flags);
+  }
+
+private:
+  char& lock_;
+};
+
+char spin_lock;
+template <bool use_hle>
+struct SpinLockCommitPolicy {
+  static void commit(unsigned int s) {
+    SpinLock<use_hle> lock(spin_lock);
+    sum += s;
+  }
+};
+
 double getTime() {
   struct timeval tv;
   gettimeofday(&tv, NULL);
@@ -126,6 +165,10 @@ double getTime() {
 
 template <class CommitPolicy>
 void run(string name, int freq) {
+#if 0
+  if (freq < 10000)
+    freq /= 10;
+#endif
   sum = 0;
   double start = getTime();
 
@@ -156,6 +199,8 @@ int main() {
 
   run<NoLockCommitPolicy>("nolock", 100);
   //run<NoLockCommitPolicy>("nolock", 100);
+  run<SpinLockCommitPolicy<false> >("spin", 100);
+  run<SpinLockCommitPolicy<true> >("spin HLE", 100);
   run<MutexCommitPolicy>("mutex", 100);
   run<MutexCommitPolicy>("mutex", 10000);
   run<AtomicCommitPolicy>("atomic", 100);

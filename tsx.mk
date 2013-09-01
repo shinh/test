@@ -7,6 +7,7 @@ ALL+=$(TSX_ALL)
 CLEAN+=$(ALL)
 
 CXX48=g++-4.8
+CXX48=/usr/local/stow/gcc-git/bin/g++
 AS=/usr/local/stow/binutils-git/bin/as
 
 $(TSX_ALL): tsx%: tsx%.o
