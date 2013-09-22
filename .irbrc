@@ -78,6 +78,25 @@ class Fixnum
     end
   end
 
+  def to_x
+    '%x' % self
+  end
+
+  def to_dg
+    r = ''
+    v = self
+    if v < 0
+      r = '-'
+      v = -v
+    end
+    while v >= 1000
+      r = '_%03d' % (v % 1000) + r
+      v /= 1000
+    end
+    r = v.to_s + r
+    r
+  end
+
   def fact
     n=1
     2.upto(self){|i|
