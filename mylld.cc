@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
 
   char buf[sizeof(Elf64_Ehdr)];
   if (read(fd, buf, sizeof(Elf64_Ehdr)) != sizeof(Elf64_Ehdr)) {
-    perror("open");
+    perror("read");
     return 1;
   }
 
