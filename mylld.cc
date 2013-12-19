@@ -21,15 +21,15 @@ struct ELF<64> {
 };
 
 template <int B>
-void lld(int fd, const char* buf) {
+void lld(int fd, const char* buf, bool is_nacl) {
   typedef typename ELF<B>::Ehdr Ehdr;
   typedef typename ELF<B>::Phdr Phdr;
   typedef typename ELF<B>::Dyn Dyn;
   const Ehdr* ehdr = reinterpret_cast<const Ehdr*>(buf);
   int phoff = static_cast<int>(ehdr->e_phoff);
-  bool text_found = false;
-  intptr_t text_addr = 0;
-  intptr_t text_off = 0;
+  int seg_num = 0;
+  intptr_t seg_addr = 0;
+  intptr_t seg_off = 0;
   for (int i = 0; i < ehdr->e_phnum; i++) {
     Phdr phdr;
     if (pread(fd, &phdr, sizeof(phdr), phoff) != sizeof(phdr)) {
@@ -38,10 +38,13 @@ void lld(int fd, const char* buf) {
     }
 
     phoff += sizeof(phdr);
-    if (!text_found && phdr.p_type == PT_LOAD) {
-      text_addr = phdr.p_vaddr;
-      text_off = phdr.p_offset;
-      text_found = true;
+    if (phdr.p_type == PT_LOAD) {
+      if (seg_num == 0 && !is_nacl ||
+          seg_num == 1 && is_nacl) {
+        seg_addr = phdr.p_vaddr;
+        seg_off = phdr.p_offset;
+      }
+      seg_num++;
     }
     if (phdr.p_type != PT_DYNAMIC)
       continue;
@@ -72,7 +75,7 @@ void lld(int fd, const char* buf) {
     }
 
     char* strtab = static_cast<char*>(malloc(strsz));
-    if (pread(fd, strtab, strsz, straddr - text_addr + text_off) != strsz) {
+    if (pread(fd, strtab, strsz, straddr - seg_addr + seg_off) != strsz) {
       perror("pread (strtab)");
       exit(1);
     }
@@ -113,10 +116,11 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
+  bool is_nacl = buf[EI_OSABI] == 0x7b;
   if (buf[EI_CLASS] == ELFCLASS32) {
-    lld<32>(fd, buf);
+    lld<32>(fd, buf, is_nacl);
   } else if (buf[EI_CLASS] == ELFCLASS64) {
-    lld<64>(fd, buf);
+    lld<64>(fd, buf, is_nacl);
   } else {
     fprintf(stderr, "Unknown ELF class\n");
     return 1;
