@@ -11,6 +11,7 @@ struct ELF {
   typedef Elf32_Ehdr Ehdr;
   typedef Elf32_Phdr Phdr;
   typedef Elf32_Dyn Dyn;
+  typedef Elf32_Addr Addr;
 };
 
 template<>
@@ -18,6 +19,7 @@ struct ELF<64> {
   typedef Elf64_Ehdr Ehdr;
   typedef Elf64_Phdr Phdr;
   typedef Elf64_Dyn Dyn;
+  typedef Elf64_Addr Addr;
 };
 
 template <int B>
@@ -25,11 +27,13 @@ void lld(int fd, const char* buf, bool is_nacl) {
   typedef typename ELF<B>::Ehdr Ehdr;
   typedef typename ELF<B>::Phdr Phdr;
   typedef typename ELF<B>::Dyn Dyn;
+  typedef typename ELF<B>::Addr Addr;
+
   const Ehdr* ehdr = reinterpret_cast<const Ehdr*>(buf);
-  int phoff = static_cast<int>(ehdr->e_phoff);
+  Addr phoff = ehdr->e_phoff;
   int seg_num = 0;
-  intptr_t seg_addr = 0;
-  intptr_t seg_off = 0;
+  Addr seg_addr = 0;
+  Addr seg_off = 0;
   for (int i = 0; i < ehdr->e_phnum; i++) {
     Phdr phdr;
     if (pread(fd, &phdr, sizeof(phdr), phoff) != sizeof(phdr)) {
@@ -39,8 +43,7 @@ void lld(int fd, const char* buf, bool is_nacl) {
 
     phoff += sizeof(phdr);
     if (phdr.p_type == PT_LOAD) {
-      if (seg_num == 0 && !is_nacl ||
-          seg_num == 1 && is_nacl) {
+      if ((seg_num == 0 && !is_nacl) || (seg_num == 1 && is_nacl)) {
         seg_addr = phdr.p_vaddr;
         seg_off = phdr.p_offset;
       }
@@ -55,8 +58,8 @@ void lld(int fd, const char* buf, bool is_nacl) {
       exit(1);
     }
 
-    int off = static_cast<int>(phdr.p_offset);
-    intptr_t straddr = 0;
+    Addr off = phdr.p_offset;
+    Addr straddr = 0;
     int strsz = 0;
     for (;;) {
       Dyn dyn;
@@ -99,6 +102,11 @@ void lld(int fd, const char* buf, bool is_nacl) {
 }
 
 int main(int argc, char* argv[]) {
+  if (argc < 2) {
+    fprintf(stderr, "Usage: %s <elf>\n", argv[0]);
+    return 1;
+  }
+
   int fd = open(argv[1], O_RDONLY);
   if (fd < 0) {
     perror("open");
