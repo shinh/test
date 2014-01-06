@@ -3,12 +3,17 @@
 bit = 64
 opt_B_found = false
 is_glibc = false
+host_os = 'linux'
 
 sel_ldr_args = []
 main_args = []
 main_found = false
 
 ARGV.each do |a|
+  if `uname` =~ /Darwin/
+    host_os = 'mac'
+  end
+
   if a == '-B' && !opt_B_found
     opt_B_found = true
   elsif /^-/ !~ a && File.exist?(a)
@@ -16,7 +21,7 @@ ARGV.each do |a|
     if /32-bit/ =~ filetype
       bit = 32
     end
-    if /dynamically linked/ =~ filetype
+    if /dynamically linked|uses shared libs/ =~ filetype
       is_glibc = true
     end
     main_found = true
@@ -41,9 +46,9 @@ if !opt_B_found
 end
 
 if is_glibc
-  args.push("#{ENV['NACL_SDK_ROOT']}/toolchain/linux_x86_glibc/x86_64-nacl/lib#{bit}/runnable-ld.so")
+  args.push("#{ENV['NACL_SDK_ROOT']}/toolchain/#{host_os}_x86_glibc/x86_64-nacl/lib#{bit}/runnable-ld.so")
   args.push("--library-path")
-  args.push("#{ENV['NACL_SDK_ROOT']}/toolchain/linux_x86_glibc/x86_64-nacl/lib#{bit}")
+  args.push("#{ENV['NACL_SDK_ROOT']}/toolchain/#{host_os}_x86_glibc/x86_64-nacl/lib#{bit}")
 end
 
 args += main_args
