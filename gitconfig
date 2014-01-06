@@ -5,6 +5,7 @@
 [core]
 	pager = lv -c
 	editor = vi
+	deltaBaseCacheLimit = 1G
 [user]
 	email = shinichiro.hamaji@gmail.com
 [alias]
