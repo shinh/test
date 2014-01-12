@@ -4,6 +4,7 @@ include tls_test.mk
 include tsx.mk
 include deadlock.mk
 include thumb_arm.mk
+include arm_va.mk
 
 all_impl: $(ALL)
 
