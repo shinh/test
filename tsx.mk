@@ -4,7 +4,7 @@ TSX_ASMS=$(TSX_OBJS:.o=.s)
 TSX_SRCS=$(TSX_OBJS:.s=.cc)
 
 ALL+=$(TSX_ALL)
-CLEAN+=$(ALL)
+CLEAN+=$(ALL) $(TSX_ASMS) $(TSX_OBJS)
 
 CXX48=g++-4.8
 CXX48=/usr/local/stow/gcc-git/bin/g++
