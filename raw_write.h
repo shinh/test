@@ -46,6 +46,22 @@
         /* The input registers may be broken by syscall */              \
         __asm__ volatile("":::"eax", "ebx", "ecx", "edx");              \
     } while (0)
+#elif defined(__arm__)
+# define RAW_WRITE(fd, buf, count)                                      \
+    do {                                                                \
+      __asm__ volatile("mov %%r0, %1;\n"                                \
+                       "mov %%r1, %2;\n"                                \
+                       "mov %%r2, %3;\n"                                \
+                       "push {%%r7};\n"                                 \
+                       "mov %%r7, %0;\n"                                \
+                       "swi 0x0;\n"                                     \
+                       "pop {%%r7};\n"::                                \
+                       "I"(SYS_write),                                  \
+                       "r"(fd),                                         \
+                       "r"(buf),                                        \
+                       "r"(count):                                      \
+                       "memory", "cc", "r0", "r1", "r2");               \
+    } while (0)
 #else
 # error "RAW_WRITE isn't defined for this architecture"
 #endif
@@ -101,7 +117,7 @@
 #define RAW_PRINT_NL_AFTER_SOMETHING(print)     \
     do {                                        \
         print;                                  \
-        RAW_WRITE(1, "\n", 1);                  \
+        RAW_WRITE(2, "\n", 1);                  \
     } while (0)
 #define RAW_PUTS_STR(buf) RAW_PRINT_NL_AFTER_SOMETHING(RAW_PRINT_STR(buf))
 #define RAW_PUTS_HEX(buf) RAW_PRINT_NL_AFTER_SOMETHING(RAW_PRINT_HEX(buf))
@@ -109,13 +125,19 @@
 #define RAW_PUTS_PTR(buf) RAW_PRINT_NL_AFTER_SOMETHING(RAW_PRINT_PTR(buf))
 
 /* some more utilities for "printf" debug... */
+#if defined(__arm__)
+#define RAW_BREAK() __asm__ volatile("bkpt;\n")
+#else
 #define RAW_BREAK() __asm__ volatile("int3;\n")
+#endif
 #define RAW_NOP() __asm__ volatile("nop;\n")
 /* you can easily find this code by grepping 4242 */
 #if defined(__x86_64__)
 # define RAW_UNIQ_NOP() __asm__ volatile("nop 0x42424242(%rax);\n")
 #elif defined(__i386__)
 # define RAW_UNIQ_NOP() __asm__ volatile("nop 0x42424242(%eax);\n")
+#elif defined(__arm__)
+# define RAW_UNIQ_NOP() __asm__ volatile("nop;\n")
 #else
 # error "RAW_UNIQ_NOP isn't defined for this architecture"
 #endif
