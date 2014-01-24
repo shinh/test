@@ -5,12 +5,17 @@
 void f() {
     void* buf[333];
     memset(buf, 0, 3*sizeof(void*));
-    printf("%d\n", backtrace(buf, 333));
-    printf("%p %p %p\n", buf[0], buf[1], buf[2]);
-    printf("%p %p\n", __builtin_return_address(0), __builtin_return_address(1));
+    int cnt = backtrace(buf, 333);
+    printf("cnt: %d\n", cnt);
+    printf("builtin_return_address: %p %p\n",
+           __builtin_return_address(0), __builtin_return_address(1));
 
-    char** syms = backtrace_symbols(buf, 333);
-    printf("%s %s %s\n", syms[0], syms[1], syms[2]);
+    char** syms = backtrace_symbols(buf, cnt);
+
+    int i;
+    for (i = 0; i < cnt; i++) {
+      printf("%p %s\n", buf[i], syms[i]);
+    }
 }
 
 int main() {

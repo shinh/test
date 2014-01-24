@@ -5,7 +5,7 @@ THUMB_ARM_OBJS=arm_main.o arm_func.o thumb_func.o
 ARM_CC=arm-linux-gnueabihf-gcc-4.7
 
 ALL+=$(THUMB_ARM_ALL)
-CLEAN+=$(ALL) $(THUMB_ARM_OBJS)
+CLEAN+=$(THUMB_ARM_ALL) $(THUMB_ARM_OBJS)
 
 thumb_arm: $(THUMB_ARM_OBJS)
 	$(ARM_CC) $(THUMB_ARM_CFLAGS) $^ -o $@
