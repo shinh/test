@@ -1,9 +1,11 @@
 #define _GNU_SOURCE
 #include <dlfcn.h>
 #include <stdio.h>
+
 void f() {
     puts("F");
 }
+
 int main() {
     Dl_info info;
 
@@ -18,5 +20,8 @@ int main() {
     }
     if (dladdr(&printf, &info)) {
         printf("base of printf: %p %s\n", info.dli_fbase, info.dli_fname);
+    }
+    if (dladdr(&main, &info)) {
+        printf("base of main: %p %s\n", info.dli_fbase, info.dli_fname);
     }
 }
