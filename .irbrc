@@ -1,4 +1,5 @@
 #!ruby
+
 require 'irb/completion'
 require 'irb/ext/save-history'
 require 'tempfile'
@@ -104,4 +105,10 @@ class Fixnum
     }
     n
   end
+end
+
+def cookie(n)
+  r = 0
+  n.times{|i|r += 1.15 ** i}
+  r
 end
