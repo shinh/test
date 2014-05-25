@@ -1,8 +1,17 @@
 #!/usr/bin/env ruby
 
+$out_filename = ARGV[1]
+$is_first = true
+
 def flush(out)
   if out.size > 0
-    puts "echo -en '#{out}'"
+    cmd = "echo -en '#{out}'"
+    if $out_filename
+      cmd += ' >' if !$is_first
+      cmd += "> #{$out_filename}"
+      $is_first = false
+    end
+    puts cmd
   end
 end
 
