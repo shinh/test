@@ -23,8 +23,6 @@ File.read(ARGV[0]).each_byte{|b|
   end
   if b >= 32 && b < 127 && b != ?'.ord && b != ?\\.ord
     out += "%c" % b
-  elsif b == 0
-    out += "\\0"
   else
     out += "\\x%02x" % b
   end
