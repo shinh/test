@@ -2,8 +2,6 @@
 #include <pthread.h>
 #include <vector>
 
-pthread_mutex_t g_mu = PTHREAD_MUTEX_INITIALIZER;
-
 class C {
 public:
   explicit C() {
