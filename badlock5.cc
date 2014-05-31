@@ -14,6 +14,7 @@ public:
     pthread_rwlock_rdlock(&mu_);
     int r = 42 + getVal();
     pthread_rwlock_unlock(&mu_);
+    return r;
   }
   int getVal() {
     pthread_rwlock_rdlock(&mu_);
