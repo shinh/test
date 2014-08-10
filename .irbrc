@@ -2,6 +2,9 @@
 
 require 'irb/completion'
 require 'irb/ext/save-history'
+require 'irb/inspector'
+
+require 'mathn'
 require 'tempfile'
 
 IRB.conf[:SAVE_HISTORY] = 100000
@@ -112,3 +115,28 @@ def cookie(n)
   n.times{|i|r += 1.15 ** i}
   r
 end
+
+inspector_proc = proc{|v|
+  fyi = []
+  if v.is_a?(Rational)
+    fyi << v.to_f
+    fyi << v
+    v = v.to_i
+  end
+  if v.is_a?(Integer)
+    fyi << '0x%x' % v
+    if v > 0 && v < 127
+      fyi << "%s" % v.chr.inspect.tr('"', "'")
+    end
+    if v > 1000
+      fyi << v.human
+    end
+    "#{v} (%s)" % (fyi * ' ')
+  elsif v.is_a?(String) && v.size == 1
+    "#{v} (%d)" % v.ord
+  else
+    IRB::Inspector::INSPECTORS[true].inspect_value(v)
+  end
+}
+IRB::Inspector::INSPECTORS['mine'] = IRB::Inspector(inspector_proc)
+IRB.conf[:INSPECT_MODE] = 'mine'
