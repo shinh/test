@@ -22,5 +22,8 @@
 	d = diff
 	dt = diff-tree -p
 	st = status -uno -s
+        am = am -3
+        apply = apply -3
+        fp = format-patch
 [push]
 	default = simple

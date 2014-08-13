@@ -3,6 +3,8 @@
 require 'irb/completion'
 require 'irb/ext/save-history'
 require 'irb/inspector'
+
+require 'mathn'
 require 'tempfile'
 
 IRB.conf[:SAVE_HISTORY] = 100000
@@ -115,8 +117,13 @@ def cookie(n)
 end
 
 inspector_proc = proc{|v|
+  fyi = []
+  if v.is_a?(Rational)
+    fyi << v.to_f
+    fyi << v
+    v = v.to_i
+  end
   if v.is_a?(Integer)
-    fyi = []
     fyi << '0x%x' % v
     if v > 0 && v < 127
       fyi << "%s" % v.chr.inspect.tr('"', "'")
