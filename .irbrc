@@ -72,11 +72,11 @@ class Fixnum
 
   def human
     if self >= 10_000_000_000
-      "#{self/1000_000_000}G"
+      "#{(self/1000_000_000).to_i}G"
     elsif self >= 10_000_000
-      "#{self/1000_000}M"
+      "#{(self/1000_000).to_i}M"
     elsif self >= 10_000
-      "#{self/1000}k"
+      "#{(self/1000).to_i}k"
     else
       "#{self}"
     end
@@ -123,12 +123,12 @@ inspector_proc = proc{|v|
     fyi << v
     v = v.to_i
   end
-  if v.is_a?(Integer)
+  if v.is_a?(Integer) && v <= 2**257
     fyi << '0x%x' % v
     if v > 0 && v < 127
       fyi << "%s" % v.chr.inspect.tr('"', "'")
     end
-    if v > 1000
+    if v > 1000 && !v.is_a?(Bignum)
       fyi << v.human
     end
     "#{v} (%s)" % (fyi * ' ')
