@@ -4,7 +4,7 @@ require 'irb/completion'
 require 'irb/ext/save-history'
 require 'irb/inspector'
 
-require 'mathn'
+#require 'mathn'
 require 'tempfile'
 
 IRB.conf[:SAVE_HISTORY] = 100000
