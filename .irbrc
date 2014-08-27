@@ -116,6 +116,14 @@ def cookie(n)
   r
 end
 
+def get_irb_inspectors
+  if IRB.constants.include?(:INSPECTORS)
+    IRB::INSPECTORS
+  else
+    IRB::Inspector::INSPECTORS
+  end
+end
+
 inspector_proc = proc{|v|
   fyi = []
   if v.is_a?(Rational)
@@ -135,8 +143,8 @@ inspector_proc = proc{|v|
   elsif v.is_a?(String) && v.size == 1
     "#{v} (%d)" % v.ord
   else
-    IRB::Inspector::INSPECTORS[true].inspect_value(v)
+    get_irb_inspectors[true].inspect_value(v)
   end
 }
-IRB::Inspector::INSPECTORS['mine'] = IRB::Inspector(inspector_proc)
+get_irb_inspectors['mine'] = IRB::Inspector(inspector_proc)
 IRB.conf[:INSPECT_MODE] = 'mine'
