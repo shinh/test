@@ -24,7 +24,6 @@ __asm__("nacl_call:"
         );
 
 #define NACL_CALL(fn, ...) ({                                   \
-      register void* r __asm__("eax") __attribute__((unused));  \
       g_nacl_call_fn = (void*)fn;                               \
       nacl_call(__VA_ARGS__);                                   \
       __asm__ __volatile__("nop;nop;nop;nop;"                   \
@@ -36,6 +35,8 @@ __asm__("nacl_call:"
                            "nop;nop;nop;nop;"                   \
                            "nop;nop;nop;nop;"                   \
                            );                                   \
+      void* r;                                                  \
+      __asm__ __volatile__("mov %%eax, %0":"=r"(r));            \
       r;                                                        \
     })
 
