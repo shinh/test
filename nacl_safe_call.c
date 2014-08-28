@@ -1,32 +1,57 @@
 #include <stdio.h>
 
 #ifdef __cplusplus
-extern "C"
+extern "C" {
+# define ELLIPSIS ...
+#else
+# define ELLIPSIS
 #endif
-void* nacl_call(void* fn, ...);
+
+static void* g_nacl_call_fn;
+void* nacl_call(ELLIPSIS);
+
+#ifdef __cplusplus
+}
+#endif
 
 __asm__("nacl_call:"
         "pop %eax\n"
-        "pop %edx\n"
         "add $32, %eax\n"
         "push %eax\n"
-        "jmp *%edx\n");
+        "mov $g_nacl_call_fn, %edx\n"
+        "mov (%edx), %edx\n"
+        "jmp *%edx\n"
+        );
 
-#define NACL_CALL(fn, ...) ({                   \
-      register void* r __asm__("eax");          \
-      nacl_call((void*)fn, ##  __VA_ARGS__);    \
-      __asm__ __volatile__("nop;nop;nop;nop;"   \
-                           "nop;nop;nop;nop;"   \
-                           "nop;nop;nop;nop;"   \
-                           "nop;nop;nop;nop;"   \
-                           "nop;nop;nop;nop;"   \
-                           "nop;nop;nop;nop;"   \
-                           "nop;nop;nop;nop;"   \
-                           "nop;nop;nop;nop;"   \
-                           );                   \
-      r;                                        \
+#define NACL_CALL(fn, ...) ({                                   \
+      g_nacl_call_fn = (void*)fn;                               \
+      nacl_call(__VA_ARGS__);                                   \
+      __asm__ __volatile__("nop;nop;nop;nop;"                   \
+                           "nop;nop;nop;nop;"                   \
+                           "nop;nop;nop;nop;"                   \
+                           "nop;nop;nop;nop;"                   \
+                           "nop;nop;nop;nop;"                   \
+                           "nop;nop;nop;nop;"                   \
+                           "nop;nop;nop;nop;"                   \
+                           "nop;nop;nop;nop;"                   \
+                           );                                   \
+      void* r;                                                  \
+      __asm__ __volatile__("mov %%eax, %0":"=r"(r));            \
+      r;                                                        \
     })
 
-int main(int argc) {
+void naclret();
+
+asm("naclret:\n"
+    "pop %eax\n"
+    "and $0xffffffe0, %eax\n"
+    "jmp *%eax\n");
+
+int f(int argc) {
+  NACL_CALL(naclret);
   return (int)NACL_CALL(printf, "%d\n", argc);
+}
+
+int main(int argc) {
+  return f(argc);
 }
