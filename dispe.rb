@@ -1,7 +1,5 @@
 #!/usr/bin/env ruby
 
-require './ctfutils'
-
 pe = ARGV[0]
 
 base = nil
