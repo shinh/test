@@ -1,0 +1,24 @@
+#!/usr/bin/env ruby
+
+cmd = ARGV[0]
+
+procs = []
+`pgrep -a #{cmd}`.each_line do |line|
+  procs << line
+end
+
+if procs.empty?
+  puts 'no such proc'
+  exit 1
+end
+
+if procs.size > 1
+  puts 'multiple procs'
+  puts procs
+  exit
+end
+
+proc = procs[0]
+puts proc
+pid = proc.to_i
+system("gdb -p #{pid}")
