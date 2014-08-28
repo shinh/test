@@ -40,7 +40,7 @@ end
 entry += base
 
 `objdump -S #{pe}`.each_line do |line|
-  if line =~ /\s# 0x([0-9a-f]+)$/
+  if line =~ /\s# 0x([0-9a-f]+)$/ || line =~ /call\s+\*0x([0-9a-f]+)$/
     addr = $1.hex
     if name = reloc_map[addr]
       line = line.chomp + " <#{name}>"
