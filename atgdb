@@ -21,4 +21,4 @@ end
 proc = procs[0]
 puts proc
 pid = proc.to_i
-system("gdb -p #{pid}")
+exec("gdb -p #{pid}")
