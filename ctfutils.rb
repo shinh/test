@@ -8,6 +8,12 @@ def File.read(filename)
   end
 end
 
+def File.write(filename, s)
+  File.open(filename, 'w:binary') do |f|
+    f.write(s)
+  end
+end
+
 def popen(a)
   IO.popen(a, 'r+:binary')
 end
