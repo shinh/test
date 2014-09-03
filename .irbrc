@@ -31,6 +31,8 @@ def asm(b, arch = 'i386')
   tmp = Tempfile.new('irb_asm', '/tmp')
   if arch == 'i8086'
     tmp.puts 'BITS 16'
+  elsif arch == 'i386'
+    tmp.puts 'BITS 32'
   end
   tmp.print(b)
   tmp.close
