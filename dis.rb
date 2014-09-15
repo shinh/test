@@ -3,13 +3,15 @@
 file = ARGV[0]
 
 syms = {}
-`nm #{file}`.each_line do |line|
-  toks = line.split
-  if toks.size != 3
-    next
+['nm', 'nm -D'].each do |nm|
+  `#{nm} #{file}`.each_line do |line|
+    toks = line.split
+    if toks.size != 3
+      next
+    end
+    addr, type, name = *toks
+    syms[addr.hex] = name
   end
-  addr, type, name = *toks
-  syms[addr.hex] = name
 end
 
 cmd = "objdump -S #{file}"
@@ -18,11 +20,19 @@ dump = `#{cmd}`
 
 annots = {}
 
+fid = 0
 lid = 0
 labels = {}
 dump.each_line do |line|
   if line =~ /^([0-9a-f]+) <(.*)>:$/
     labels[$1.hex] = $2
+  elsif line =~ /push\s+%[er]bp/
+    addr = line.hex
+    if !labels[addr] || labels[addr] =~ /^\.L/
+      label = ".func#{fid}"
+      labels[addr] = label
+      fid += 1
+    end
   elsif line =~ /^\s*([0-9a-f]+):\s*.*?\s(call|j[a-z]+)\s+([0-9a-f]+)/
     from = $1.hex
     to = $3.hex
@@ -37,8 +47,11 @@ end
 
 dump.each_line do |line|
   addr = line.hex
-  if addr != 0 && labels[addr].to_s =~ /^\.L/
-    puts "#{labels[addr]}:"
+  if addr != 0 && (label = labels[addr].to_s) =~ /^\.(L|func)/
+    if label =~ /func/
+      puts
+    end
+    puts "#{label}:"
   end
 
   annot = []
