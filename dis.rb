@@ -37,7 +37,7 @@ end
 
 dump.each_line do |line|
   addr = line.hex
-  if addr != 0 && labels[addr].to_s =~ /^\./
+  if addr != 0 && labels[addr].to_s =~ /^\.L/
     puts "#{labels[addr]}:"
   end
 
@@ -52,6 +52,7 @@ dump.each_line do |line|
     operands.split(',').each do |operand|
       next if operand =~ /^-?0x[0-9a-f]+\(/
       next if operand =~ /^\(?%/
+      next if operand =~ /</
       addr = operand[/(0x)?([0-9a-f]+)/, 2].hex
       if syms[addr]
         annot << syms[addr]
