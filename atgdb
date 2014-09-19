@@ -15,10 +15,10 @@ end
 if procs.size > 1
   puts 'multiple procs'
   puts procs
-  exit
+  #exit
 end
 
-proc = procs[0]
+proc = procs[-1]
 puts proc
 pid = proc.to_i
 exec("gdb -p #{pid}")
