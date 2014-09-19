@@ -133,7 +133,7 @@ dump.each_line do |line|
       labels[addr] = label
       fid += 1
     end
-  elsif line =~ /^\s*([0-9a-f]+):\s*.*?\s(call|j[a-z]+)\s+([0-9a-f]+)/
+  elsif line =~ /^\s*([0-9a-f]+):\s*.*?\s(callq?|j[a-z]+)\s+([0-9a-f]+)/
     from = $1.hex
     to = $3.hex
     if labels[to]
