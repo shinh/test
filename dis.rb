@@ -88,7 +88,7 @@ class Exe
 
           if !ok
             r << '%08x' % @code[o, 4].unpack('V')
-            r << '%x' % @code[o, 8].unpack('Q')
+            r << '%x' % (@code[o, 8].unpack('Q')[0] >> 32)
           end
           return r * ' '
         end
@@ -163,7 +163,9 @@ dump.each_line do |line|
 
   annot = []
   if annots[addr]
-    annot << annots[addr]
+    if !line.include?(annots[addr])
+      annot << annots[addr]
+    end
   end
 
   if line =~ /:\s+([0-9a-f]{2}\s)+\s+([a-z]+)\s+(.*)$/
