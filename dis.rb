@@ -136,7 +136,9 @@ dump.each_line do |line|
   elsif line =~ /^\s*([0-9a-f]+):\s*.*?\s(call|j[a-z]+)\s+([0-9a-f]+)/
     from = $1.hex
     to = $3.hex
-    if !labels[to]
+    if labels[to]
+      annots[from] = labels[to]
+    else
       label = "[L#{lid}]"
       labels[to] = label
       annots[from] = label
