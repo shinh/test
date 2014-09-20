@@ -31,6 +31,14 @@ class IO
     end
   end
 
+  def show_all_buf
+    while r = IO.select([self], [], [], 0)
+      if r[0][0] == self
+        STDOUT.putc self.read(1)
+      end
+    end
+  end
+
   def interactive
     STDOUT.puts 'INTERACTIVE!'
     begin

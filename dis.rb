@@ -8,9 +8,12 @@ class Exe
   attr_reader :entry
 
   def initialize(filename)
+    @filename = filename
     @code = File.read(filename)
-    if @code[0, 4] = "\x7fELF"
+    if @code[0, 4] == "\x7fELF"
       parse_elf
+    elsif @code[0, 2] == "MZ"
+      parse_pe
     end
   end
 
@@ -59,6 +62,20 @@ class Exe
         }
       end
     }
+  end
+
+  def parse_pe
+    @maps = []
+    `objdump -h #{@filename}`.scan(/\n\s+\d+\s+(\.[a-z]+)(.*)/) do
+      #puts "#$1 #$2"
+      size, vma, lma, off, algn = $2.split
+      @maps << {
+        :offset => off.hex,
+        :vaddr => vma.hex,
+        :memsz => size.hex,
+        :filesz => size.hex,
+      }
+    end
   end
 
   def get_data(addr)
@@ -113,7 +130,11 @@ syms = {}
   end
 end
 
-cmd = "objdump -S #{file}"
+if `file #{file}` =~ /PE32/
+  cmd = "ruby #{File.dirname(File.realpath(__FILE__))}/dispe.rb #{file}"
+else
+  cmd = "objdump -S #{file}"
+end
 puts cmd
 dump = `#{cmd}`
 
