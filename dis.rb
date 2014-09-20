@@ -136,12 +136,10 @@ dump.each_line do |line|
   elsif line =~ /^\s*([0-9a-f]+):\s*.*?\s(callq?|j[a-z]+)\s+([0-9a-f]+)/
     from = $1.hex
     to = $3.hex
-    if labels[to]
-      annots[from] = labels[to]
-    else
+    annots[from] = to
+    if !labels[to]
       label = "[L#{lid}]"
       labels[to] = label
-      annots[from] = label
       lid += 1
     end
   end
@@ -163,8 +161,9 @@ dump.each_line do |line|
 
   annot = []
   if annots[addr]
-    if !line.include?(annots[addr])
-      annot << annots[addr]
+    label = labels[annots[addr]]
+    if !line.include?(label)
+      annot << label
     end
   end
 
