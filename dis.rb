@@ -152,7 +152,7 @@ end
 dump.each_line do |line|
   addr = line.hex
 
-  if addr != 0 && line !~ /</ && (label = labels[addr].to_s) =~ /^\[/
+  if addr != 0 && line !~ /<.*>:/ && (label = labels[addr].to_s) =~ /^\[/
     if label =~ /func/
       puts
     end
