@@ -2,6 +2,8 @@
 
 cmd = ARGV[0]
 
+args = ARGV[1..-1]
+
 procs = []
 `pgrep -a #{cmd}`.each_line do |line|
   procs << line
@@ -21,4 +23,4 @@ end
 proc = procs[-1]
 puts proc
 pid = proc.to_i
-exec("gdb -p #{pid}")
+exec("gdb -p #{pid} #{args.map{|a|"'#{a}'"} * ' '}")
