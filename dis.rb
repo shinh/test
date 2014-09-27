@@ -3,6 +3,31 @@
 require './ctfutils'
 
 file = ARGV[0]
+out_filename = ARGV[0].sub(/\.exe$/, '') + '.dmp'
+
+comments = {}
+cur_comment = []
+if File.exist?(out_filename)
+  File.readlines(out_filename).each do |line|
+    if line =~ /# (.*)/
+      comment = $1
+      if line =~ /^\s*(\h+):/
+        addr = $1.hex
+        comments[[addr, true]] = comment
+      else
+        cur_comment << comment
+      end
+    end
+
+    if line =~ /^\s*(\h+):/
+      addr = $1.hex
+      if !cur_comment.empty?
+        comments[[addr, false]] = cur_comment
+        cur_comment = []
+      end
+    end
+  end
+end
 
 class Exe
   attr_reader :entry
@@ -130,12 +155,14 @@ syms = {}
   end
 end
 
+of = File.open(out_filename, 'w')
+
 if `file #{file}` =~ /PE32/
   cmd = "ruby #{File.dirname(File.realpath(__FILE__))}/dispe.rb #{file}"
 else
   cmd = "objdump -S #{file}"
 end
-puts cmd
+of.puts cmd
 dump = `#{cmd}`
 
 annots = {}
@@ -175,9 +202,13 @@ dump.each_line do |line|
 
   if addr != 0 && line !~ /<.*>:/ && (label = labels[addr].to_s) =~ /^\[/
     if label =~ /func/
-      puts
+      of.puts
     end
-    puts "#{label}:"
+    of.puts "#{label}:"
+  end
+
+  if line =~ /^\s*(\h+):/ && c = comments[[addr, false]]
+    of.puts c.map{|l|"# #{l}\n"} * ""
   end
 
   annot = []
@@ -211,5 +242,8 @@ dump.each_line do |line|
   if !annot.empty?
     line += " ; #{annot * ' '}"
   end
-  puts line
+  if c = comments[[addr, true]]
+    line += " # #{c}"
+  end
+  of.puts line
 end
