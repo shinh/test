@@ -145,7 +145,7 @@ lid = 0
 labels = {}
 
 dump.each_line do |line|
-  if line =~ /^([0-9a-f]+) <(.*)>:$/
+  if line =~ /^(\h+) <(.*)>:$/
     labels[$1.hex] = $2
   elsif line =~ /push\s+%[er]bp/
     addr = line.hex
@@ -154,7 +154,7 @@ dump.each_line do |line|
       labels[addr] = label
       fid += 1
     end
-  elsif line =~ /^\s*([0-9a-f]+):\s*.*?\s(callq?|j[a-z]+)\s+(?:0x)?([0-9a-f]+)/
+  elsif line =~ /^\s*(\h+):\s*.*?\s(callq?|j[a-z]+)\s+(?:0x)?(\h+)/
     from = $1.hex
     to = $3.hex
     annots[from] = to
@@ -188,14 +188,14 @@ dump.each_line do |line|
     end
   end
 
-  if line =~ /:\s+([0-9a-f]{2}\s)+\s+([a-z]+)\s+(.*)$/
+  if line =~ /:\s+(\h{2}\s)+\s+([a-z]+)\s+(.*)$/
     op = $2
     operands = $3
     operands.split(',').each do |operand|
-      next if operand =~ /^-?0x[0-9a-f]+\(/
+      next if operand =~ /^-?0x\h+\(/
       next if operand =~ /^\(?%/
       next if operand =~ /</
-      addr = operand[/(0x)?([0-9a-f]+)/, 2].hex
+      addr = operand[/(0x)?(\h+)/, 2].hex
 
       if syms[addr]
         annot << syms[addr]
