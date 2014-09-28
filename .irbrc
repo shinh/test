@@ -27,6 +27,8 @@ def disasm(b, arch = 'i386')
   end
   nil
 end
+alias disas disasm
+
 def asm(b, arch = 'i386')
   tmp = Tempfile.new('irb_asm', '/tmp')
   if arch == 'i8086'
