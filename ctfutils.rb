@@ -134,3 +134,8 @@ def shellcode_from_dump(dump)
 
   sc
 end
+
+if ARGV[0] == '-p'
+  $prod = true
+  ARGV.shift
+end
