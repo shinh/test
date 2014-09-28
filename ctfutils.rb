@@ -116,3 +116,21 @@ class Range
     '%x-%x' % [first, last]
   end
 end
+
+def shellcode_from_dump(dump)
+  dump = dump.gsub(/^\s*\h+:/, '')
+  sc = ''
+  dump.scan(/^\s*((\h{2}\s)+)/) do
+    sc += $1.split.map{|h|h.hex.chr} * ''
+  end
+
+  if i = sc.index("\0")
+    STDERR.puts "WARNING: NULL in shellcode at #{i}"
+  end
+  if i = sc.index("\n")
+    STDERR.puts "WARNING: linebreak in shellcode at #{i}"
+  end
+  STDERR.puts "shellcode size: #{sc.size}"
+
+  sc
+end
