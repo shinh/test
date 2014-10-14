@@ -151,7 +151,9 @@ syms = {}
       next
     end
     addr, type, name = *toks
-    syms[addr.hex] = name
+    if addr.hex >= 0x100
+      syms[addr.hex] = name
+    end
   end
 end
 
