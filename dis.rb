@@ -161,6 +161,10 @@ of = File.open(out_filename, 'w')
 
 if `file #{file}` =~ /PE32/
   cmd = "ruby #{File.dirname(File.realpath(__FILE__))}/dispe.rb #{file}"
+elsif `file #{file}` =~ / ARM/
+  cmd = "arm-linux-gnueabihf-objdump -S #{file}"
+elsif `file #{file}` =~ / SH,/
+  cmd = "/usr/local/stow/binutils-all/bin/all-objdump -S #{file}"
 else
   cmd = "objdump -S #{file}"
 end
@@ -176,14 +180,14 @@ labels = {}
 dump.each_line do |line|
   if line =~ /^(\h+) <(.*)>:$/
     labels[$1.hex] = $2
-  elsif line =~ /push\s+%[er]bp/
+  elsif line =~ /push\s+(%[er]bp|{lr})/
     addr = line.hex
     if !labels[addr] || labels[addr] =~ /^\[L/
       label = "[func#{fid}]"
       labels[addr] = label
       fid += 1
     end
-  elsif line =~ /^\s*(\h+):\s*.*?\s(callq?|j[a-z]+)\s+(?:0x)?(\h+)/
+  elsif line =~ /^\s*(\h+):\s*.*?\s(callq?|j[a-z]+|b(?:l|lx|sr|t|f))\s+(?:0x)?(\h+)/
     from = $1.hex
     to = $3.hex
     annots[from] = to
