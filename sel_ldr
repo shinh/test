@@ -38,11 +38,11 @@ args = ["sel_ldr_x86_#{bit}"]
 args += sel_ldr_args
 if !opt_B_found
   args.push("-B")
-  if is_glibc
+  #if is_glibc
     args.push("#{ENV['NACL_SDK_ROOT']}/tools/irt_core_x86_#{bit}.nexe")
-  else
-    args.push("#{ENV['NACL_SDK_ROOT']}/tools/irt_core_newlib_x86_#{bit}.nexe")
-  end
+  #else
+  #  args.push("#{ENV['NACL_SDK_ROOT']}/tools/irt_core_newlib_x86_#{bit}.nexe")
+  #end
 end
 
 if is_glibc
