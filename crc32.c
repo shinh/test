@@ -1,4 +1,5 @@
 #include <pthread.h>
+#include <smmintrin.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -33,11 +34,23 @@ uint32_t crc32_uint32(uint32_t v) {
   return c ^ 0xFFFFFFFF;
 }
 
+uint32_t crc32_uint32_asm(uint32_t v) {
+  uint32_t c = 0xFFFFFFFF;
+  for (int i = 0; i < 8; i++) {
+    uint8_t b = "0123456789abcdef"[(v >> (4 * (7 - i))) & 15];
+    c = _mm_crc32_u8(c, b);
+  }
+  //c = _mm_crc32_u32(c, v);
+  c = _mm_crc32_u8(c, 10);
+  return c ^ 0xFFFFFFFF;
+}
+
 void* crc32_thread(void* data) {
   int id = (int)data;
   for (int i = 0; i < 4294967296ULL / NUM_THREADS; i++) {
     uint32_t v = (4294967296ULL / NUM_THREADS) * id + i;
-    uint32_t r = crc32_uint32(v);
+    //uint32_t r = crc32_uint32(v);
+    uint32_t r = crc32_uint32_asm(v);
     if (v == r) {
       printf("hit. %x\n", v);
     }
