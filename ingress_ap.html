@@ -1,0 +1,234 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html> <head>
+<title>AP見積り屋</title>
+<script>
+
+function $(id) {
+  return document.getElementById(id);
+}
+
+function get_values() {
+  var url = location.href;
+  var hash = url.search('#');
+  var values = {};
+  if (hash >= 0) {
+    var value_strs = url.substring(hash + 1).split('&');
+    for (var i = 0; i < value_strs.length; i++) {
+      var index = value_strs[i].search('=');
+      var key = value_strs[i].substring(0, index);
+      var value = value_strs[i].substring(index + 1);
+      values[key] = unescape(value);
+    }
+  }
+  return values;
+}
+
+function init() {
+  values = get_values();
+  for (var k in values) {
+    $(k).value = values[k];
+  }
+
+  calc();
+}
+
+var KEYS = ['builder', 'connector', 'mind', 'recharger', 'liberator',
+            'engineer', 'purifier', 'hacker', 'disruptor', 'salvator',
+            'seer', 'recruiter',
+            'ap', 'builder_r', 'recharger_r', 'hacker_r'];
+
+function ratio(ap, total) {
+  var r = (ap * 1000 / total) | 0;
+  return (ap | 0) + ' ' + r / 10 + '%';
+}
+
+function calc() {
+  var ap = $('ap').value;
+  var total = 0;
+
+  var builder = $('builder').value;
+  var builder_ap = builder * 125 + builder / $('builder_r').value * 250;
+  $('builder_ap').innerHTML = '~' + ratio(builder_ap, ap);
+  total += builder_ap;
+
+  var connector = $('connector').value;
+  var connector_ap = connector * 313;
+  $('connector_ap').innerHTML = ratio(connector_ap, ap);
+  total += connector_ap;
+
+  var mind = $('mind').value;
+  var mind_ap = mind * 1250;
+  $('mind_ap').innerHTML = ratio(mind_ap, ap);
+  total += mind_ap;
+
+  var recharger = $('recharger').value;
+  var recharger_ap = recharger / $('recharger_r').value * 10;
+  $('recharger_ap').innerHTML = '~' + ratio(recharger_ap, ap);
+  total += recharger_ap;
+
+  var liberator = $('liberator').value;
+  var liberator_ap = liberator * 500;
+  $('liberator_ap').innerHTML = ratio(liberator_ap, ap);
+  total += liberator_ap;
+
+  var engineer = $('engineer').value;
+  var engineer_ap = engineer * 125;
+  $('engineer_ap').innerHTML = ratio(engineer_ap, ap);
+  total += engineer_ap;
+
+  var purifier = $('purifier').value;
+  var purifier_ap = purifier * 75;
+  $('purifier_ap').innerHTML = ratio(purifier_ap, ap);
+  total += purifier_ap;
+
+  var hacker = $('hacker').value;
+  var hacker_ap = hacker * 100 * $('hacker_r').value / 100;
+  $('hacker_ap').innerHTML = '~' + ratio(hacker_ap, ap);
+  total += hacker_ap;
+
+  var disruptor = $('disruptor').value;
+  var disruptor_ap = disruptor * 187;
+  $('disruptor_ap').innerHTML = ratio(disruptor_ap, ap);
+  total += disruptor_ap;
+
+  var salvator = $('salvator').value;
+  var salvator_ap = salvator * 750;
+  $('salvator_ap').innerHTML = ratio(salvator_ap, ap);
+  total += salvator_ap;
+
+  var seer = $('seer').value;
+  var seer_ap = seer * 1000;
+  $('seer_ap').innerHTML = ratio(seer_ap, ap);
+  total += seer_ap;
+
+  var recruiter = $('recruiter').value;
+  var recruiter_ap = recruiter * 3000;
+  $('recruiter_ap').innerHTML = ratio(recruiter_ap, ap);
+  total += recruiter_ap;
+
+  var builder = $('builder').value;
+
+  $('estimated_ap').innerHTML = ratio(total, ap);
+  $('rest_ap').innerHTML = ratio(ap - total, ap);
+}
+
+function save() {
+  var values = [];
+  for (var i = 0; i < KEYS.length; i++) {
+    values.push(KEYS[i] + '=' + $(KEYS[i]).value);
+  }
+  var url = location.href;
+  var hash = url.search('#');
+  if (hash >= 0) {
+    url = url.substring(0, hash);
+  }
+  url += '#';
+  url += values.join('&');
+  location.href = url;
+}
+
+function estimate() {
+  save();
+  calc();
+}
+
+</script>
+</head>
+
+<body onload="init()">
+<h1>AP見積り屋</h1>
+
+<table border="1">
+  <tr>
+    <th>メダル名
+    <th>
+    <th>AP見積り
+    <th>パラメータ
+  </tr>
+  <tr>
+    <td>Builder
+    <td><input id="builder">
+    <td><span id="builder_ap">
+    <td><input id="builder_r" size="2" value="8"> deploy に1回8本目のレゾだったとする
+  </tr>
+  <tr>
+    <td>Connector
+    <td><input id="connector">
+    <td><span id="connector_ap">
+  </tr>
+  <tr>
+    <td>Mind Controller
+    <td><input id="mind">
+    <td><span id="mind_ap">
+  </tr>
+  <tr>
+    <td>Recharger
+    <td><input id="recharger">
+    <td><span id="recharger_ap">
+    <td>1回につき<input id="recharger_r" value="950" size="4"> recharge とする
+  </tr>
+  <tr>
+    <td>Liberator
+    <td><input id="liberator">
+    <td><span id="liberator_ap">
+  </tr>
+  <tr>
+    <td>Engineer
+    <td><input id="engineer">
+    <td><span id="engineer_ap">
+  </tr>
+  <tr>
+    <td>Purifier
+    <td><input id="purifier">
+    <td><span id="purifier_ap">
+  </tr>
+  <tr>
+    <td>Hacker
+    <td><input id="hacker">
+    <td><span id="hacker_ap">
+    <td><input id="hacker_r" size="2" value="50">% の hack が敵 portal とする
+  </tr>
+  <tr>
+    <td>Disruptor
+    <td><input id="disruptor">
+    <td><span id="disruptor_ap">
+  </tr>
+  <tr>
+    <td>Salvator
+    <td><input id="salvator">
+    <td><span id="salvator_ap">
+  </tr>
+  <tr>
+    <td>Seer
+    <td><input id="seer">
+    <td><span id="seer_ap">
+  </tr>
+  <tr>
+    <td>Recruiter
+    <td><input id="recruiter">
+    <td><span id="recruiter_ap">
+  </tr>
+  <tr>
+    <td>AP
+    <td><input id="ap">
+    <td><span id="estimated_ap">
+  </tr>
+  <tr>
+    <td>不明AP
+    <td>
+    <td><span id="rest_ap">
+  </tr>
+
+</table>
+
+<input type="button" value="estimate" onclick="estimate()">
+
+<ul>
+  <li>非公式メダル名は <a href="https://www.agent-stats.com/">Agent stats</a> の名前に倣っています
+  <li>~ がついてる数字は厳密に計算できないと思います
+  <li>上書き deploy を頻繁にする人は Builder の 8 本目レゾのとこの数字を気持ち多くしてください。
+  <li>ポータルの写真追加、情報追加変更、パスコード、あたりは考慮に入れてません
+  <li>普通、不明APの大きな要因は AP 倍増キャンペーン時の活動などではないかと思います
+</ul>
+
+</body> </html>
