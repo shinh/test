@@ -232,6 +232,7 @@ dump.each_line do |line|
       next if operand =~ /^-?0x\h+\(/
       next if operand =~ /^\(?%/
       next if operand =~ /</
+      next if !operand[/(0x)?(\h+)/, 2]
       addr = operand[/(0x)?(\h+)/, 2].hex
 
       if syms[addr]
