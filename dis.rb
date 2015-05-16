@@ -230,8 +230,8 @@ ebx = nil
 dump.each_line do |line|
   addr = line.hex
 
-  if exe.is_pie && ebx_thunk
-    if line =~ /call\s+#{"%x"%ebx_thunk}/
+  if ebx_thunk
+    if line =~ /call\s+(0x)?#{"%x"%ebx_thunk}/
       ebx = addr + 5
     elsif line =~ /add\s+\$0x(\h+),%ebx/
       #puts "%x => %x" % [ebx, ebx + $1.hex]
@@ -266,7 +266,7 @@ dump.each_line do |line|
     operands.split(',').each do |operand|
       if operand =~ /(-?0x\h+)\((%rip|%ebx)\)/
         if $2 == '%ebx'
-          if exe.is_pie
+          if exe.is_pie || ebx_thunk
             a = ebx + $1.hex
           end
         else
