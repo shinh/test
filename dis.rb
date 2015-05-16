@@ -187,6 +187,10 @@ fid = 0
 lid = 0
 labels = {}
 
+if ebx_thunk
+  labels[ebx_thunk] = '[func_ebx]'
+end
+
 dump.each_line do |line|
   if line =~ /^(\h+) <(.*)>:$/
     labels[$1.hex] = $2
@@ -226,8 +230,13 @@ ebx = nil
 dump.each_line do |line|
   addr = line.hex
 
-  if exe.is_pie && ebx_thunk && line =~ /call\s+#{"%x"%ebx_thunk}/
-    ebx = addr + 5
+  if exe.is_pie && ebx_thunk
+    if line =~ /call\s+#{"%x"%ebx_thunk}/
+      ebx = addr + 5
+    elsif line =~ /add\s+\$0x(\h+),%ebx/
+      #puts "%x => %x" % [ebx, ebx + $1.hex]
+      ebx += $1.hex
+    end
   end
 
   if addr != 0 && line !~ /<.*>:/ && (label = labels[addr].to_s) =~ /^\[/
@@ -255,9 +264,9 @@ dump.each_line do |line|
     op = $2
     operands = $3
     operands.split(',').each do |operand|
-      if operand =~ /(0x\h+)\((%rip|%ebx)\)/
+      if operand =~ /(-?0x\h+)\((%rip|%ebx)\)/
         if $2 == '%ebx'
-          a = ebx + $1.hex + num_ops
+          a = ebx + $1.hex
         else
           a = ip + $1.hex + num_ops
         end
