@@ -190,11 +190,20 @@ dump.each_line do |line|
   elsif line =~ /^\s*(\h+):\s*.*?\s(callq?|j[a-z]+|b(?:l|lx|sr|t|f))\s+(?:0x)?(\h+)/
     from = $1.hex
     to = $3.hex
+    if $2 =~ /^call|^bl/
+      is_func = true
+    end
     annots[from] = to
     if !labels[to]
-      label = "[L#{lid}]"
-      labels[to] = label
-      lid += 1
+      if is_func
+        label = "[func#{fid}]"
+        labels[to] = label
+        fid += 1
+      else
+        label = "[L#{lid}]"
+        labels[to] = label
+        lid += 1
+      end
     end
   end
 end
@@ -232,19 +241,19 @@ dump.each_line do |line|
     operands = $3
     operands.split(',').each do |operand|
       if operand =~ /(0x\h+)\(%[er]ip\)/
-        addr = ip + $1.hex + num_ops
+        a = ip + $1.hex + num_ops
       else
         next if operand =~ /^-?0x\h+\(/
         next if operand =~ /^\(?%/
         next if operand =~ /</
         next if !operand[/(0x)?(\h+)/, 2]
-        addr = operand[/(0x)?(\h+)/, 2].hex
+        a = operand[/(0x)?(\h+)/, 2].hex
       end
 
-      if syms[addr]
-        annot << syms[addr]
+      if syms[a]
+        annot << syms[a]
       end
-      data = exe.get_data(addr)
+      data = exe.get_data(a)
       if data
         annot << data
       end
