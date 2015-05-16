@@ -83,12 +83,12 @@ class Exe
         p_memsz = phdr[5]
         off += 32
       end
-      if p_vaddr == 0
-        @is_pie = true
-      end
       p_type = phdr[0]
 
       if p_type == 1
+        if p_vaddr == 0
+          @is_pie = true
+        end
         @maps << {
           :offset => p_offset,
           :vaddr => p_vaddr,
@@ -266,7 +266,9 @@ dump.each_line do |line|
     operands.split(',').each do |operand|
       if operand =~ /(-?0x\h+)\((%rip|%ebx)\)/
         if $2 == '%ebx'
-          a = ebx + $1.hex
+          if exe.is_pie
+            a = ebx + $1.hex
+          end
         else
           a = ip + $1.hex + num_ops
         end
@@ -281,7 +283,9 @@ dump.each_line do |line|
       if syms[a]
         annot << syms[a]
       end
-      data = exe.get_data(a)
+      if a
+        data = exe.get_data(a)
+      end
       if data
         annot << data
       end
