@@ -2,6 +2,12 @@
 
 require './ctfutils'
 
+if ARGV[0] == '--ebx-thunk'
+  ARGV.shift
+  ebx_thunk = ARGV.shift.hex
+  STDERR.puts "Use ebx_thunk=%x" % ebx_thunk
+end
+
 file = ARGV[0]
 out_filename = ARGV[0].sub(/\.exe$/, '') + '.dmp'
 
@@ -30,7 +36,7 @@ if File.exist?(out_filename)
 end
 
 class Exe
-  attr_reader :entry
+  attr_reader :entry, :is_pie
 
   def initialize(filename)
     @filename = filename
@@ -55,6 +61,7 @@ class Exe
     tmpl = _get_tmpl('vvV!!!Vvvvvvv')
     ehdr = @code[16, 64 - 16].unpack(tmpl)
     @entry = ehdr[3]
+    @is_pie = false
 
     @maps = []
     phoff = ehdr[4]
@@ -75,6 +82,9 @@ class Exe
         p_filesz = phdr[4]
         p_memsz = phdr[5]
         off += 32
+      end
+      if p_vaddr == 0
+        @is_pie = true
       end
       p_type = phdr[0]
 
@@ -212,8 +222,13 @@ if exe.entry
   labels[exe.entry] = '[entry]'
 end
 
+ebx = nil
 dump.each_line do |line|
   addr = line.hex
+
+  if exe.is_pie && ebx_thunk && line =~ /call\s+#{"%x"%ebx_thunk}/
+    ebx = addr + 5
+  end
 
   if addr != 0 && line !~ /<.*>:/ && (label = labels[addr].to_s) =~ /^\[/
     if label =~ /func/
@@ -240,8 +255,12 @@ dump.each_line do |line|
     op = $2
     operands = $3
     operands.split(',').each do |operand|
-      if operand =~ /(0x\h+)\(%[er]ip\)/
-        a = ip + $1.hex + num_ops
+      if operand =~ /(0x\h+)\((%rip|%ebx)\)/
+        if $2 == '%ebx'
+          a = ebx + $1.hex + num_ops
+        else
+          a = ip + $1.hex + num_ops
+        end
       else
         next if operand =~ /^-?0x\h+\(/
         next if operand =~ /^\(?%/
