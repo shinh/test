@@ -225,15 +225,21 @@ dump.each_line do |line|
     end
   end
 
-  if line =~ /:\s+(\h{2}\s)+\s+([a-z]+)\s+(.*)$/
+  if line =~ /:\s+((?:\h{2}\s)+)\s+([a-z]+)\s+(.*)$/
+    ip = $`.hex
+    num_ops = $1.split.size
     op = $2
     operands = $3
     operands.split(',').each do |operand|
-      next if operand =~ /^-?0x\h+\(/
-      next if operand =~ /^\(?%/
-      next if operand =~ /</
-      next if !operand[/(0x)?(\h+)/, 2]
-      addr = operand[/(0x)?(\h+)/, 2].hex
+      if operand =~ /(0x\h+)\(%[er]ip\)/
+        addr = ip + $1.hex + num_ops
+      else
+        next if operand =~ /^-?0x\h+\(/
+        next if operand =~ /^\(?%/
+        next if operand =~ /</
+        next if !operand[/(0x)?(\h+)/, 2]
+        addr = operand[/(0x)?(\h+)/, 2].hex
+      end
 
       if syms[addr]
         annot << syms[addr]
