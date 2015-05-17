@@ -53,6 +53,7 @@ int main(int argc, char* argv[]) {
   argv++;
   pid_t pid = fork();
   if (pid) {
+    long prev = 0;
     while (true) {
       int status;
       wait(&status);
@@ -61,7 +62,9 @@ int main(int argc, char* argv[]) {
 
       Regs regs;
       CHECKED_PTRACE(PTRACE_GETREGS, pid, 0, (long)&regs);
-      printf("%p\n", regs.rip);
+      if (prev != regs.rip)
+        printf("%p\n", regs.rip);
+      prev = regs.rip;
 
       CHECKED_PTRACE(PTRACE_SINGLESTEP, pid, 0, 0);
     }
