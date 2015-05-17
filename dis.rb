@@ -179,7 +179,8 @@ else
   cmd = "objdump -S #{file}"
 end
 of.puts cmd
-dump = `#{cmd}`
+dump = `#{cmd} | c++filt`
+dump.gsub!(/(\s+\h+\s+)<.+@plt\+0x\h+>/, '\1')
 
 annots = {}
 
@@ -235,7 +236,9 @@ dump.each_line do |line|
       ebx = addr + 5
     elsif line =~ /add\s+\$0x(\h+),%ebx/
       #puts "%x => %x" % [ebx, ebx + $1.hex]
-      ebx += $1.hex
+      if ebx
+        ebx += $1.hex
+      end
     end
   end
 
@@ -266,7 +269,7 @@ dump.each_line do |line|
     operands.split(',').each do |operand|
       if operand =~ /(-?0x\h+)\((%rip|%ebx)\)/
         if $2 == '%ebx'
-          if exe.is_pie || ebx_thunk
+          if ebx_thunk && ebx
             a = ebx + $1.hex
           end
         else

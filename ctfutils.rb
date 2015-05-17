@@ -139,3 +139,7 @@ if ARGV[0] == '-p'
   $prod = true
   ARGV.shift
 end
+if ARGV[0] == '-g'
+  $gdb = true
+  ARGV.shift
+end

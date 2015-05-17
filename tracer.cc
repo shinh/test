@@ -50,7 +50,7 @@ long checked_ptrace(enum __ptrace_request req, pid_t pid, long addr, long data,
 
 int main(int argc, char* argv[]) {
   argc--;
-  argc++;
+  argv++;
   pid_t pid = fork();
   if (pid) {
     while (true) {
