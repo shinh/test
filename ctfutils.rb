@@ -2,6 +2,8 @@
 
 require 'io/nonblock'
 
+require 'socket'
+
 def File.read(filename)
   File.open(filename, 'r:binary') do |f|
     f.read
@@ -14,8 +16,47 @@ def File.write(filename, s)
   end
 end
 
+def install_io_log_hook(pipe, bn)
+  log_in = "/tmp/#{bn}.in.log"
+  log_out = "/tmp/#{bn}.out.log"
+  File.delete(log_in) if File.exist?(log_in)
+  File.delete(log_out) if File.exist?(log_out)
+  orig_gets = pipe.method(:gets)
+  orig_read = pipe.method(:read)
+  orig_write = pipe.method(:write)
+  pipe.define_singleton_method(:gets, proc do |*a|
+                                 r = orig_gets[*a]
+                                 File.open(log_in, 'a') do |of|
+                                   of.write(r)
+                                 end
+                                 r
+                               end)
+  pipe.define_singleton_method(:read, proc do |*a|
+                                 r = orig_read[*a]
+                                 File.open(log_in, 'a') do |of|
+                                   of.write(r)
+                                 end
+                                 r
+                               end)
+  pipe.define_singleton_method(:write, proc do |*a|
+                                 orig_write[*a]
+                                 File.open(log_out, 'a') do |of|
+                                   of.write(*a)
+                                 end
+                               end)
+end
+
+def socket(*a)
+  s = TCPSocket.new(*a)
+  install_io_log_hook(s, a*':')
+  s
+end
+
 def popen(a)
-  IO.popen(a, 'r+:binary')
+  pipe = IO.popen(a, 'r+:binary')
+  bn = File.basename(a)
+  install_io_log_hook(pipe, bn)
+  pipe
 end
 
 class IO
