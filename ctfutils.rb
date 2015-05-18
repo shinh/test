@@ -57,6 +57,20 @@ class IO
     end
   end
 
+  def wait_until(reg)
+    b = ''
+    while true
+      c = self.read(1)
+      if !$quiet
+        STDERR.putc c
+      end
+      b += c
+      if reg =~ b
+        return $~
+      end
+    end
+  end
+
   def interactive
     STDOUT.puts 'INTERACTIVE!'
     begin
