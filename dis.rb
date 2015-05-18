@@ -276,6 +276,7 @@ dump.each_line do |line|
           a = ip + $1.hex + num_ops
         end
       else
+        next if exe.is_pie
         next if operand =~ /^-?0x\h+\(/
         next if operand =~ /^\(?%/
         next if operand =~ /</

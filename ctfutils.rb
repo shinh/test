@@ -22,13 +22,25 @@ class IO
   def get(n=nil)
     if n
       r = read(n)
-      STDERR.puts ('%02x' * r.size) % r.unpack("c*") if !$quiet
+      if !$quiet
+        STDERR.print(r)
+        #STDERR.puts ('%02x' * r.size) % r.unpack("c*")
+      end
       r
     else
       l = gets
       STDERR.puts l if !$quiet
       l
     end
+  end
+
+  def puts(s)
+    if s =~ /\n$/
+      write(s)
+    else
+      write("#{s}\n")
+    end
+    flush
   end
 
   def show_all_buf
