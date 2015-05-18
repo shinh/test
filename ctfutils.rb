@@ -43,10 +43,16 @@ class IO
     flush
   end
 
+  def p(*a)
+    a.each do |s|
+      puts s.inspect
+    end
+  end
+
   def show_all_buf
     while r = IO.select([self], [], [], 0)
       if r[0][0] == self
-        STDOUT.putc self.read(1)
+        STDERR.putc self.read(1)
       end
     end
   end
