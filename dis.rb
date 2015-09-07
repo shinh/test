@@ -244,7 +244,7 @@ dump.each_line do |line|
 
   if addr != 0 && line !~ /<.*>:/ && (label = labels[addr].to_s) =~ /^\[/
     if label =~ /func/
-      of.puts
+      of.puts ""
     end
     of.puts "#{label}:"
   end
