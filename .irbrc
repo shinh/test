@@ -120,6 +120,20 @@ def cookie(n)
   r
 end
 
+def Time.to_us(*a)
+  if a.size == 3 && a[0] < 24
+    a = [2000,1,1] + a
+  end
+  t = Time.local(*a)
+
+  tz = ENV['TZ']
+  ENV['TZ'] = 'US/Pacific'
+  t = Time.at(t.to_i)
+  t.inspect  # let the timezone fixed
+  ENV['TZ'] = tz
+  t
+end
+
 def get_irb_inspectors
   if IRB.constants.include?(:INSPECTORS)
     IRB::INSPECTORS
