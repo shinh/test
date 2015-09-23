@@ -98,10 +98,13 @@ memo.split("\n\n").each do |s|
     end
   end
   weapon = tags[0]
-  all_weapons[weapon] = true
   cont = lines[1..-1] * "\n" + "\n"
+  is_gati = tags.any?{|t|t =~ /^[AYH]$/}
+  if is_gati
+    all_weapons[weapon] = all_weapons[weapon].to_i + cont.count("\n")
+  end
 
-  tags << (title =~ /@/ ? 'NAWA' : 'GATI')
+  tags << (is_gati ? 'GATI' : 'NAWA')
   tags.each{|t|all_tags[t] = true}
   all_results << [tags, parse_results(cont)]
 end
@@ -121,60 +124,73 @@ show_stat_of(['NAWA'], all_results)
 show_stat_of(['GATI'], all_results)
 show_stat_of([], all_results)
 
-kdmap = {}
-max_kill = 15
-max_death = 15
-filter(['GATI'], all_results).each do |results|
-  k, d, wl = *results
-  if k !~ /\d/ || d !~ /\d/
-    raise "#{k} #{d} #{wl}"
-  end
-
-  k = k.to_i
-  d = d.to_i
-  if k > max_kill
-    k = max_kill
-  end
-  if d > max_death
-    d = max_death
-  end
-  kdmap[[k, d]] = [0, 0] if !kdmap[[k, d]]
-  if wl == 'w'
-    kdmap[[k, d]][0] += 1
-  elsif wl == 'l'
-    kdmap[[k, d]][1] += 1
-  end
-end
-
 File.open('kdmap.html', 'w') do |of|
-  num, win, lose, kill, death = *calc_stat(filter(['GATI'], all_results))
-  of.puts "<p>ガチソロ#{num}試合 勝率#{per(win,win+lose)} k/d=#{"%.2f"%(kill.to_f/death)}"
+  of.puts '<p>全てガチソロ'
 
-  of.puts '<p><table border=1>'
-  of.puts '<tr>'
-  of.puts '<th>kill \ death'
-  0.upto(max_death) do |d|
-    if d == max_death
-      d = "#{d}+"
-    end
-    of.puts "<th>#{d}"
+  tables = [['全', ['GATI']],
+            ['エリア', ['GATI', 'A']],
+            ['ヤグラ', ['GATI', 'Y']],
+            ['ホコ', ['GATI', 'H']],
+           ]
+  all_weapons.sort_by{|w, n|-n}[0,3].each do |w, _|
+    tables << ["#{w}", ['GATI', w]]
   end
-  of.puts '</tr>'
 
-  0.upto(max_kill) do |k|
-    of.puts '<tr>'
-    of.puts %Q(<th>#{k == max_kill ? "#{k}+" : k})
-    0.upto(max_death) do |d|
-      w, l = *kdmap[[k, d]]
-      if w
-        r = w.to_f / (w+l)
-        c = '#%02x%02xa0' % [(255 - 90 * r).to_i, (255 - 90 * (1.0 - r)).to_i]
-        of.puts %Q(<td style="background-color: #{c}">#{w}/#{w+l} #{per(w,w+l)}</td>)
-      else
-        of.puts "<td>N/A"
+  tables.each do |title, tags|
+    kdmap = {}
+    max_kill = 15
+    max_death = 15
+    filter(tags, all_results).each do |results|
+      k, d, wl = *results
+      if k !~ /\d/ || d !~ /\d/
+        raise "#{k} #{d} #{wl}"
+      end
+
+      k = k.to_i
+      d = d.to_i
+      if k > max_kill
+        k = max_kill
+      end
+      if d > max_death
+        d = max_death
+      end
+      kdmap[[k, d]] = [0, 0] if !kdmap[[k, d]]
+      if wl == 'w'
+        kdmap[[k, d]][0] += 1
+      elsif wl == 'l'
+        kdmap[[k, d]][1] += 1
       end
     end
-  end
 
-  of.puts '</table>'
+    num, win, lose, kill, death = *calc_stat(filter(tags, all_results))
+    of.puts "<p>#{title}#{num}試合 勝率#{per(win,win+lose)} k/d=#{"%.2f"%(kill.to_f/death)}"
+
+    of.puts '<p><table border=1>'
+    of.puts '<tr>'
+    of.puts '<th>kill \ death'
+    0.upto(max_death) do |d|
+      if d == max_death
+        d = "#{d}+"
+      end
+      of.puts "<th>#{d}"
+    end
+    of.puts '</tr>'
+
+    0.upto(max_kill) do |k|
+      of.puts '<tr>'
+      of.puts %Q(<th>#{k == max_kill ? "#{k}+" : k})
+      0.upto(max_death) do |d|
+        w, l = *kdmap[[k, d]]
+        if w
+          r = w.to_f / (w+l)
+          c = '#%02x%02xa0' % [(255 - 90 * r).to_i, (255 - 90 * (1.0 - r)).to_i]
+          of.puts %Q(<td style="background-color: #{c}">#{w}/#{w+l} #{per(w,w+l)}</td>)
+        else
+          of.puts "<td>N/A"
+        end
+      end
+    end
+
+    of.puts '</table>'
+  end
 end
