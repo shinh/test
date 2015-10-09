@@ -134,6 +134,11 @@ def Time.to_us(*a)
   t
 end
 
+def bin
+  Encoding.default_external = 'binary'
+  Encoding.default_internal = 'binary'
+end
+
 def get_irb_inspectors
   if IRB.constants.include?(:INSPECTORS)
     IRB::INSPECTORS

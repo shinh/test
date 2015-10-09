@@ -4,6 +4,9 @@ require 'io/nonblock'
 
 require 'socket'
 
+Encoding.default_external = 'binary'
+Encoding.default_internal = 'binary'
+
 def File.read(filename)
   File.open(filename, 'r:binary') do |f|
     f.read
