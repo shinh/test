@@ -171,3 +171,7 @@ inspector_proc = proc{|v|
 }
 get_irb_inspectors['mine'] = IRB::Inspector(inspector_proc)
 IRB.conf[:INSPECT_MODE] = 'mine'
+
+def frenzy_lucky(cps, bank = 0)
+  [cps * 900 * 7, bank * 0.15, cps * 900 * 7 / 0.15]
+end
