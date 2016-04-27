@@ -4,8 +4,10 @@ require 'io/nonblock'
 
 require 'socket'
 
-Encoding.default_external = 'binary'
-Encoding.default_internal = 'binary'
+if RUBY_VERSION !~ /^1\.8/
+  Encoding.default_external = 'binary'
+  Encoding.default_internal = 'binary'
+end
 
 def File.read(filename)
   File.open(filename, 'r:binary') do |f|
@@ -51,14 +53,18 @@ end
 
 def socket(*a)
   s = TCPSocket.new(*a)
-  install_io_log_hook(s, a*':')
+  if RUBY_VERSION !~ /^1\.8/
+    install_io_log_hook(s, a*':')
+  end
   s
 end
 
 def popen(a)
   pipe = IO.popen(a, 'r+:binary')
   bn = File.basename(a)
-  install_io_log_hook(pipe, bn)
+  if RUBY_VERSION !~ /^1\.8/
+    install_io_log_hook(pipe, bn)
+  end
   pipe
 end
 
