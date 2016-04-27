@@ -8,8 +8,13 @@ if ARGV[0] == '--ebx-thunk'
   STDERR.puts "Use ebx_thunk=%x" % ebx_thunk
 end
 
-file = ARGV[0]
-out_filename = ARGV[0].sub(/\.exe$/, '') + '.dmp'
+if ARGV[0] == 'objdump'
+  cmd = ARGV * ' '
+  file = ARGV[-1]
+else
+  file = ARGV[0]
+end
+out_filename = file.sub(/\.exe$/, '') + '.dmp'
 
 comments = {}
 cur_comment = []
@@ -169,14 +174,16 @@ end
 
 of = File.open(out_filename, 'w')
 
-if `file #{file}` =~ /PE32/
-  cmd = "ruby #{File.dirname(File.realpath(__FILE__))}/dispe.rb #{file}"
-elsif `file #{file}` =~ / ARM/
-  cmd = "arm-linux-gnueabihf-objdump -S #{file}"
-elsif `file #{file}` =~ / SH,/
-  cmd = "/usr/local/stow/binutils-all/bin/all-objdump -S #{file}"
-else
-  cmd = "objdump -S #{file}"
+if !cmd
+  if `file #{file}` =~ /PE32/
+    cmd = "ruby #{File.dirname(File.realpath(__FILE__))}/dispe.rb #{file}"
+  elsif `file #{file}` =~ / ARM/
+    cmd = "arm-linux-gnueabihf-objdump -S #{file}"
+  elsif `file #{file}` =~ / SH,/
+    cmd = "/usr/local/stow/binutils-all/bin/all-objdump -S #{file}"
+  else
+    cmd = "objdump -S #{file}"
+  end
 end
 of.puts cmd
 dump = `#{cmd} | c++filt`
