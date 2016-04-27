@@ -35,6 +35,8 @@ def asm(b, arch = 'i386')
     tmp.puts 'BITS 16'
   elsif arch == 'i386'
     tmp.puts 'BITS 32'
+  elsif arch == 'x86_64'
+    tmp.puts 'BITS 64'
   end
   tmp.print(b)
   tmp.close
