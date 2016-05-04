@@ -194,6 +194,7 @@ annots = {}
 fid = 0
 lid = 0
 labels = {}
+calls = []
 
 if ebx_thunk
   labels[ebx_thunk] = '[func_ebx]'
@@ -227,6 +228,10 @@ dump.each_line do |line|
         lid += 1
       end
     end
+
+    if is_func
+      calls << [from, labels[to]]
+    end
   end
 end
 
@@ -235,8 +240,12 @@ if exe.entry
 end
 
 ebx = nil
+last_addr = nil
 dump.each_line do |line|
   addr = line.hex
+  if addr != 0
+    last_addr = addr
+  end
 
   if ebx_thunk
     if line =~ /call\s+(0x)?#{"%x"%ebx_thunk}/
@@ -311,4 +320,46 @@ dump.each_line do |line|
     line += " # #{c}"
   end
   of.puts line
+end
+
+funcs = {}
+funcs[nil] = [[], []]
+addrs = []
+labels_a = labels.to_a.sort.reject{|a, fn|fn !~ /^\[func/}
+labels_a.each_with_index do |kv, i|
+  addr, fn = kv
+  funcs[fn] = [[], []]
+  next_addr = labels_a[i+1] ? labels_a[i+1][0] : last_addr
+  addrs << [addr, next_addr, fn]
+end
+addrs.sort!
+
+calls = calls.map do |from, to|
+  _, _, fn = addrs.bsearch{|ca, na, fn|from < ca ? -1 : from >= na ? 1 : 0}
+  [fn, to]
+end
+
+calls.each do |from, to|
+  funcs[from][1] << to
+  funcs[to][0] << from
+end
+
+$of = of
+def show_call_tree(funcs, fn, stack, seen)
+  $of.puts " " * stack.size + fn.to_s
+  return if seen[fn]
+  seen[fn] = true
+
+  stack << fn
+  funcs[fn][1].each do |callee|
+    show_call_tree(funcs, callee, stack, seen)
+  end
+  stack.pop
+end
+
+funcs.each do |fn, kv|
+  callers, callees = kv
+  next if !callers.empty?
+
+  show_call_tree(funcs, fn, [], {})
 end
