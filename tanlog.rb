@@ -40,27 +40,33 @@ preexec_functions+=tanlog_begin
 precmd_functions+=tanlog_end
 EOC
 
+Encoding.default_external = 'binary'
+Encoding.default_internal = 'binary'
+
 def rotate_log
   # TODO
 end
 
-Encoding.default_external = 'binary'
-Encoding.default_internal = 'binary'
-
-if ARGV[0]
-  rawfile = ARGV[0]
+def sanitize_log(rawfile)
   sanfile = rawfile.sub('-raw.log', '-san.log')
 
-  log = File.read(rawfile)
-  log.gsub!(/\a                       # Bell
-         | \e \x5B .*? [\x40-\x7E]  # CSI
-         | \e \x5D .*? \x07         # Set terminal title
-         | \e [\x40-\x5A\x5C\x5F]   # 2 byte sequence
-/x, '')
-  log.gsub!(/\s* \x0d* \x0a/x, "\x0a")  # Remove end-of-line CRs.
-  log.gsub!(/ \s* \x0d /x, "\x0a")      # Replace orphan CRs with LFs.
+  File.open(rawfile) do |ifile|
+    File.open(sanfile, 'w') do |of|
+      ifile.each do |log|
+        log.gsub!(/\a                        # Bell
+                  | \e \x5B .*? [\x40-\x7E]  # CSI
+                  | \e \x5D .*? \x07         # Set terminal title
+                  | \e [\x40-\x5A\x5C\x5F]   # 2 byte sequence
+                  /x, '')
+        log.gsub!(/\s* \x0d* \x0a/x, "\x0a")  # Remove end-of-line CRs.
+        log.gsub!(/ \s* \x0d /x, "\x0a")      # Replace orphan CRs with LFs.
 
-  File.open(sanfile, 'w') do |of|
-    of.print log
+        of.print log
+      end
+    end
   end
+end
+
+if ARGV[0]
+  sanitize_log(ARGV[0])
 end
