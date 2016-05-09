@@ -20,10 +20,6 @@ preexec_functions+=tanlog_begin
 precmd_functions+=tanlog_end
 EOC
 
-if ENV['TERM'] !~ /screen/ || ENV['SSH_TTY']
-  exit
-end
-
 Encoding.default_external = 'binary'
 Encoding.default_internal = 'binary'
 
@@ -41,6 +37,16 @@ def raw_to_san(rawfile)
   rawfile.sub('/RAW/', '/')
 end
 
+def create_prev_links(logfile, dir)
+  4.downto(1){|n|
+    prev_link = "#{dir}/" + "P" * n
+    if File.exist?(prev_link)
+      File.rename(prev_link, prev_link + "P")
+    end
+  }
+  FileUtils.ln_sf(logfile, "#{dir}/P")
+end
+
 def setup_cmd_link(logfile, cmd)
   arg0 = cmd.sub(/^[()\s]+/, '').split[0]
   arg0 = File.basename(arg0)
@@ -52,13 +58,7 @@ def setup_cmd_link(logfile, cmd)
       dest = "#{cd}/#{File.basename(lf)}"
       FileUtils.ln_s(lf, dest)
 
-      4.downto(1){|n|
-        prev_link = "#{cd}/" + "P" * n
-        if File.exist?(prev_link)
-          File.rename(prev_link, prev_link + "P")
-        end
-      }
-      FileUtils.ln_sf(lf, "#{cd}/P")
+      create_prev_links(lf, cd)
     end
   end
 end
@@ -90,6 +90,7 @@ def setup_log(cmd)
 
   print logfile
 
+  create_prev_links(logfile, "#{TANLOG_DIR}/TODAY")
   setup_cmd_link(logfile, cmd)
 end
 
@@ -122,13 +123,24 @@ def end_tanlog(args)
   sanitize_log(args[0]) if args[0]
 end
 
+def show_recent_logs(args)
+  logs = Dir.glob("#{TANLOG_DIR}/TODAY/P*").sort
+  logs.reverse.each do |log|
+    print File.read(log)
+  end
+end
+
 cmd, *args = ARGV
 
 case cmd
 when 'start'
+  exit if ENV['TERM'] !~ /screen/ || ENV['SSH_TTY']
   start_tanlog(args)
 when 'end'
+  exit if ENV['TERM'] !~ /screen/ || ENV['SSH_TTY']
   end_tanlog(args)
+when 'recent'
+  show_recent_logs(args)
 else
   raise "Unknown tanlog command: #{cmd}"
 end
