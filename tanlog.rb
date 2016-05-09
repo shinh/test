@@ -37,11 +37,17 @@ def screen(args)
   end
 end
 
+def raw_to_san(rawfile)
+  rawfile.sub(/-raw\.log$/, '-san.log')
+end
+
 def setup_cmd_link(logfile, cmd)
   arg0 = cmd.split[0]
   cmddir = "#{TANLOG_DIR}/#{arg0}"
   FileUtils.mkdir_p(cmddir)
-  FileUtils.ln_s(logfile, "#{cmddir}/#{File.basename(logfile)}")
+  dest = "#{cmddir}/#{File.basename(logfile)}"
+  FileUtils.ln_s(logfile, dest)
+  FileUtils.ln_s(raw_to_san(logfile), raw_to_san(dest))
 end
 
 def setup_log(cmd)
@@ -79,7 +85,7 @@ def start_tanlog(args)
 end
 
 def sanitize_log(rawfile)
-  sanfile = rawfile.sub('-raw.log', '-san.log')
+  sanfile = raw_to_san(rawfile)
 
   File.open(rawfile) do |ifile|
     File.open(sanfile, 'w') do |of|
