@@ -3,6 +3,8 @@ WEAPON_MAP = {
   'カーボン' => 'カーボンローラー',
   'シューコラ' => 'シューターコラボ',
   'スプラシューターコラボ' => 'シューターコラボ',
+  'スプラローラーコラボ' => 'ローラーコラボ',
+  'ロラコラ' => 'ローラーコラボ',
 }
 
 while true
@@ -132,7 +134,7 @@ File.open('kdmap.html', 'w') do |of|
             ['ヤグラ', ['GATI', 'Y']],
             ['ホコ', ['GATI', 'H']],
            ]
-  all_weapons.sort_by{|w, n|-n}[0,3].each do |w, _|
+  all_weapons.sort_by{|w, n|-n}[0,5].each do |w, _|
     tables << ["#{w}", ['GATI', w]]
   end
 

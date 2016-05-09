@@ -35,6 +35,8 @@ def asm(b, arch = 'i386')
     tmp.puts 'BITS 16'
   elsif arch == 'i386'
     tmp.puts 'BITS 32'
+  elsif arch == 'x86_64'
+    tmp.puts 'BITS 64'
   end
   tmp.print(b)
   tmp.close
@@ -134,6 +136,11 @@ def Time.to_us(*a)
   t
 end
 
+def bin
+  Encoding.default_external = 'binary'
+  Encoding.default_internal = 'binary'
+end
+
 def get_irb_inspectors
   if IRB.constants.include?(:INSPECTORS)
     IRB::INSPECTORS
@@ -166,3 +173,7 @@ inspector_proc = proc{|v|
 }
 get_irb_inspectors['mine'] = IRB::Inspector(inspector_proc)
 IRB.conf[:INSPECT_MODE] = 'mine'
+
+def frenzy_lucky(cps, bank = 0)
+  [cps * 900 * 7, bank * 0.15, cps * 900 * 7 / 0.15]
+end
