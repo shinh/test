@@ -2,49 +2,80 @@
 #
 # inspired by https://github.com/omakoto/zenlog
 
+require 'fileutils'
+require 'tempfile'
+
+TANLOG_DIR = '/tmp/tanlog'
+
 ZSH_CODE = <<EOC
-_maybe_screen() {
-    if [[ "$TERM" =~ "screen.*" ]]; then
-        if [ "x$SSH_TTY" = "x" ]; then
-            screen "$@"
-        fi
-    fi
-}
-
 tanlog_begin() {
-    local date=$(date '+%Y-%m-%d')
-    local logdir="/tmp/tanlog/${date}"
-    if [ ! -d $logdir ]; then
-        mkdir -p $logdir
-    fi
-    local time=$(date '+%H:%M:%S')
-    local n=0
-    local logfile=""
-    while [ -z "$logfile" -o -e $logfile ]; do
-        logfile="${logdir}/${time}-${n}-raw.log"
-        n=$(($n+1))
-    done
-    echo "\$ $1" > $logfile
-
-    export TANLOG_LOGFILE=$logfile
-    _maybe_screen -X logfile $logfile
-    _maybe_screen -X log on
+    export TANLOG_LOGFILE=$($HOME/test/tanlog.rb start $1)
 }
-
 tanlog_end() {
-    _maybe_screen -X log off
-    $HOME/test/tanlog.rb $TANLOG_LOGFILE &!
+    $HOME/test/tanlog.rb end $TANLOG_LOGFILE
 }
-
+typeset -Uga preexec_functions
+typeset -Uga precmd_functions
 preexec_functions+=tanlog_begin
 precmd_functions+=tanlog_end
 EOC
+
+if ENV['TERM'] !~ /screen/ || ENV['SSH_TTY']
+  exit
+end
 
 Encoding.default_external = 'binary'
 Encoding.default_internal = 'binary'
 
 def rotate_log
   # TODO
+end
+
+def screen(args)
+  if !system("screen #{args * ' '}")
+    raise "command failed: #{args}"
+  end
+end
+
+def setup_cmd_link(logfile, cmd)
+  arg0 = cmd.split[0]
+  cmddir = "#{TANLOG_DIR}/#{arg0}"
+  FileUtils.mkdir_p(cmddir)
+  FileUtils.ln_s(logfile, "#{cmddir}/#{File.basename(logfile)}")
+end
+
+def setup_log(cmd)
+  now = Time.now
+  date = now.strftime('%Y-%m-%d')
+  logdir = "#{TANLOG_DIR}/#{date}"
+  FileUtils.mkdir_p(logdir)
+
+  FileUtils.rm_f("#{TANLOG_DIR}/.TODAY")
+  FileUtils.ln_sf(logdir, "#{TANLOG_DIR}/.TODAY")
+  File.rename("#{TANLOG_DIR}/.TODAY", "#{TANLOG_DIR}/TODAY")
+
+  time = now.strftime('%H:%M:%S')
+  n = 0
+  while true
+    logfile = "#{logdir}/#{time}-#{n}-raw.log"
+    break if !File.exist? logfile
+    n += 1
+  end
+
+  File.open(logfile, 'w') do |of|
+    of.puts "$ #{cmd}"
+  end
+
+  screen(['-X', 'logfile', logfile])
+  screen(['-X', 'log', 'on'])
+
+  print logfile
+
+  setup_cmd_link(logfile, cmd)
+end
+
+def start_tanlog(args)
+  setup_log(args[0])
 end
 
 def sanitize_log(rawfile)
@@ -67,6 +98,18 @@ def sanitize_log(rawfile)
   end
 end
 
-if ARGV[0]
-  sanitize_log(ARGV[0])
+def end_tanlog(args)
+  screen(['-X', 'log', 'off'])
+  sanitize_log(args[0]) if args[0]
+end
+
+cmd, *args = ARGV
+
+case cmd
+when 'start'
+  start_tanlog(args)
+when 'end'
+  end_tanlog(args)
+else
+  raise "Unknown tanlog command: #{cmd}"
 end
