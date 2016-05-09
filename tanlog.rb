@@ -90,7 +90,7 @@ def setup_log(cmd)
 
   print logfile
 
-  create_prev_links(logfile, "#{TANLOG_DIR}/TODAY")
+  create_prev_links(raw_to_san(logfile), "#{TANLOG_DIR}/TODAY")
   setup_cmd_link(logfile, cmd)
 end
 
