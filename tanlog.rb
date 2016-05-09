@@ -50,18 +50,20 @@ end
 Encoding.default_external = 'binary'
 Encoding.default_internal = 'binary'
 
-rawfile = ARGV[0]
-sanfile = rawfile.sub('-raw.log', '-san.log')
+if ARGV[0]
+  rawfile = ARGV[0]
+  sanfile = rawfile.sub('-raw.log', '-san.log')
 
-log = File.read(rawfile)
-log.gsub!(/\a                       # Bell
+  log = File.read(rawfile)
+  log.gsub!(/\a                       # Bell
          | \e \x5B .*? [\x40-\x7E]  # CSI
          | \e \x5D .*? \x07         # Set terminal title
          | \e [\x40-\x5A\x5C\x5F]   # 2 byte sequence
 /x, '')
-log.gsub!(/\s* \x0d* \x0a/x, "\x0a")  # Remove end-of-line CRs.
-log.gsub!(/ \s* \x0d /x, "\x0a")      # Replace orphan CRs with LFs.
+  log.gsub!(/\s* \x0d* \x0a/x, "\x0a")  # Remove end-of-line CRs.
+  log.gsub!(/ \s* \x0d /x, "\x0a")      # Replace orphan CRs with LFs.
 
-File.open(sanfile, 'w') do |of|
-  of.print log
+  File.open(sanfile, 'w') do |of|
+    of.print log
+  end
 end
