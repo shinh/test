@@ -38,32 +38,44 @@ def screen(args)
 end
 
 def raw_to_san(rawfile)
-  rawfile.sub(/-raw\.log$/, '-san.log')
+  rawfile.sub('/RAW/', '/')
 end
 
 def setup_cmd_link(logfile, cmd)
   arg0 = cmd.split[0]
-  cmddir = "#{TANLOG_DIR}/#{arg0}"
-  FileUtils.mkdir_p(cmddir)
-  dest = "#{cmddir}/#{File.basename(logfile)}"
-  FileUtils.ln_s(logfile, dest)
-  FileUtils.ln_s(raw_to_san(logfile), raw_to_san(dest))
+  ["#{TANLOG_DIR}/RAW/#{arg0}",
+   "#{File.dirname(logfile)}/#{arg0}"].each do |cmddir|
+    [[cmddir, logfile],
+     [raw_to_san(cmddir), raw_to_san(logfile)]].each do |cd, lf|
+      FileUtils.mkdir_p(cd)
+      dest = "#{cd}/#{File.basename(lf)}"
+      FileUtils.ln_s(lf, dest)
+
+      4.downto(1){|n|
+        prev_link = "#{cd}/" + "P" * n
+        if File.exist?(prev_link)
+          File.rename(prev_link, prev_link + "P")
+        end
+      }
+      FileUtils.ln_sf(lf, "#{cd}/P")
+    end
+  end
 end
 
 def setup_log(cmd)
   now = Time.now
   date = now.strftime('%Y-%m-%d')
-  logdir = "#{TANLOG_DIR}/#{date}"
+  logdir = "#{TANLOG_DIR}/RAW/#{date}"
   FileUtils.mkdir_p(logdir)
 
   FileUtils.rm_f("#{TANLOG_DIR}/.TODAY")
-  FileUtils.ln_sf(logdir, "#{TANLOG_DIR}/.TODAY")
+  FileUtils.ln_sf(raw_to_san(logdir), "#{TANLOG_DIR}/.TODAY")
   File.rename("#{TANLOG_DIR}/.TODAY", "#{TANLOG_DIR}/TODAY")
 
   time = now.strftime('%H:%M:%S')
   n = 0
   while true
-    logfile = "#{logdir}/#{time}-#{n}-raw.log"
+    logfile = "#{logdir}/#{time}-#{n}.log"
     break if !File.exist? logfile
     n += 1
   end
