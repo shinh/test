@@ -42,7 +42,8 @@ def raw_to_san(rawfile)
 end
 
 def setup_cmd_link(logfile, cmd)
-  arg0 = cmd.split[0]
+  arg0 = cmd.sub(/^[()\s]+/, '').split[0]
+  arg0 = File.basename(arg0)
   ["#{TANLOG_DIR}/RAW/#{arg0}",
    "#{File.dirname(logfile)}/#{arg0}"].each do |cmddir|
     [[cmddir, logfile],
