@@ -68,6 +68,7 @@ def setup_log(cmd)
   date = now.strftime('%Y-%m-%d')
   logdir = "#{TANLOG_DIR}/RAW/#{date}"
   FileUtils.mkdir_p(logdir)
+  FileUtils.mkdir_p(raw_to_san(logdir))
 
   FileUtils.rm_f("#{TANLOG_DIR}/.TODAY")
   FileUtils.ln_sf(raw_to_san(logdir), "#{TANLOG_DIR}/.TODAY")
