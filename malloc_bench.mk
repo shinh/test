@@ -7,9 +7,10 @@ CLEAN += $(all) $(objs)
 
 all: $(all)
 
-$(objs): %.o: %.cc malloc_bench.h
-	$(CXX) -std=c++11 -c -g -O $< -o $@
+$(objs): %.o: %.cc
+	$(CXX) -std=c++11 -MMD -MP -c -g -O $< -o $@
 
 malloc_bench: $(objs)
 	$(CXX) -g -O $^ -o $@
 
+-include $(objs:.o=.d)
