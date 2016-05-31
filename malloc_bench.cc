@@ -92,12 +92,14 @@ DEFINE_RUN_BENCH(__libc)
 DEFINE_RUN_BENCH(kr)
 DEFINE_RUN_BENCH(mmap)
 DEFINE_RUN_BENCH(leak)
+DEFINE_RUN_BENCH(my)
 
 enum {
   KR,
   MMAP,
   GLIBC,
   LEAK,
+  MY,
 };
 
 int main(int argc, char* argv[]) {
@@ -112,6 +114,8 @@ int main(int argc, char* argv[]) {
       mode = GLIBC;
     } else if (!strcmp(mode_str, "leak")) {
       mode = LEAK;
+    } else if (!strcmp(mode_str, "my")) {
+      mode = MY;
     } else {
       fprintf(stderr, "unknown mode\n");
       abort();
@@ -160,6 +164,7 @@ int main(int argc, char* argv[]) {
     case MMAP: run_bench_mmap(); break;
     case GLIBC: run_bench___libc(); break;
     case LEAK: run_bench_leak(); break;
+    case MY: run_bench_my(); break;
     default: abort();
   }
   double elapsed = (double)(clock() - start) / CLOCKS_PER_SEC;

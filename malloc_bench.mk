@@ -1,5 +1,5 @@
 all := malloc_bench
-srcs := malloc_bench.cc kr_malloc.cc mmap_malloc.cc leak_malloc.cc
+srcs := malloc_bench.cc kr_malloc.cc mmap_malloc.cc leak_malloc.cc my_malloc.cc
 objs := $(srcs:.cc=.o)
 
 ALL += $(all)
