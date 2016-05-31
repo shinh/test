@@ -5,6 +5,8 @@
 #include <string.h>
 #include <sys/mman.h>
 
+#include "malloc_bench.h"
+
 namespace {
 
 static const uint32_t CHUNK_SIZE = 32;
@@ -97,7 +99,6 @@ void free_impl(void* ptr) {
   ChunkHeader* p = static_cast<ChunkHeader*>(sub(ptr, HEADER_SIZE));
   size_t sz = p->sz & ~1;
 
-  //fprintf(stderr, "p=%p freep=%p %d\n", p, freep, p < freep);
   ChunkHeader* fd = freep;
   if (p < fd) {
     while (p < fd->bk) {
@@ -109,7 +110,6 @@ void free_impl(void* ptr) {
       fd = fd->fd;
     }
   }
-  //fprintf(stderr, "p=%p freep=%p fd=%p\n", p, freep, fd);
   ChunkHeader* bk = fd->bk;
 
   // TODO: consolidate free chunks.
@@ -128,31 +128,14 @@ void free_impl(void* ptr) {
 
 }
 
-extern "C" {
-
-void* my_malloc(size_t size) {
+void* kr_malloc(size_t size) {
   void* r = malloc_impl(size);
-  //fprintf(stderr, "malloc %zu %p\n", size, r);
   return r;
 }
 
-void my_free(void *ptr) {
-  //fprintf(stderr, "free %p\n", ptr);
+void kr_free(void *ptr) {
   free_impl(ptr);
 }
 
-void* my_calloc(size_t nmemb, size_t size) {
-  size *= nmemb;
-  void* r = malloc(size);
-  memset(r, 0, size);
-  return r;
-}
-
-void* my_realloc(void *ptr, size_t size) {
-  void* r = malloc(size);
-  memcpy(r, ptr, size);
-  free(ptr);
-  return r;
-}
-
-}
+DEFINE_CALLOC(kr)
+DEFINE_REALLOC(kr)
