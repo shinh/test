@@ -2,6 +2,8 @@
 #include <string.h>
 #include <sys/mman.h>
 
+#include "malloc_bench.h"
+
 namespace {
 
 void* malloc_impl(size_t size) {
@@ -22,28 +24,13 @@ void* free_impl(void* ptr) {
 
 }
 
-extern "C" {
-
-void* malloc(size_t size) {
+void* mmap_malloc(size_t size) {
   malloc_impl(size);
 }
 
-void free(void *ptr) {
+void mmap_free(void *ptr) {
   free_impl(ptr);
 }
 
-void* calloc(size_t nmemb, size_t size) {
-  size *= nmemb;
-  void* r = malloc(size);
-  memset(r, 0, size);
-  return r;
-}
-
-void* realloc(void *ptr, size_t size) {
-  void* r = malloc(size);
-  memcpy(r, ptr, size);
-  free(ptr);
-  return r;
-}
-
-}
+DEFINE_CALLOC(mmap)
+DEFINE_REALLOC(mmap)

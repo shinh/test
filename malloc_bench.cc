@@ -11,6 +11,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "malloc_bench.h"
+
 using namespace std;
 
 #define CHECK(c) do {                           \
@@ -66,42 +68,65 @@ void record_free(void* p, Log* l) {
   ptr2id.erase(p);
 }
 
-extern "C" {
-void* my_malloc(size_t size);
-void my_free(void *ptr);
-void* my_calloc(size_t nmemb, size_t size);
-void* my_realloc(void *ptr, size_t size);
-#define malloc my_malloc
-#define free my_free
-#define calloc my_calloc
-#define realloc my_realloc
-}
+#define DEFINE_RUN_BENCH(n)                                     \
+  void run_bench_ ## n() {                                      \
+    for (const Log& log : logs) {                               \
+      switch (log.type) {                                       \
+        case MALLOC:                                            \
+          ptrs[log.r] = n ## _malloc(log.a0);                   \
+          break;                                                \
+        case FREE:                                              \
+          n ## _free(ptrs[log.a0]);                             \
+          break;                                                \
+        case CALLOC:                                            \
+          ptrs[log.r] = n ## _calloc(log.a0, log.a1);           \
+          break;                                                \
+        case REALLOC:                                           \
+          ptrs[log.r] = n ## _realloc(ptrs[log.a0], log.a1);    \
+          break;                                                \
+      }                                                         \
+    }                                                           \
+  }                                                             \
 
-void run_bench() {
-  for (const Log& log : logs) {
-    switch (log.type) {
-      case MALLOC:
-        ptrs[log.r] = malloc(log.a0);
-        break;
-      case FREE:
-        free(ptrs[log.a0]);
-        break;
-      case CALLOC:
-        ptrs[log.r] = calloc(log.a0, log.a1);
-        break;
-      case REALLOC:
-        ptrs[log.r] = realloc(ptrs[log.a0], log.a1);
-        break;
+DEFINE_RUN_BENCH(__libc)
+DEFINE_RUN_BENCH(kr)
+DEFINE_RUN_BENCH(mmap)
+DEFINE_RUN_BENCH(leak)
+DEFINE_RUN_BENCH(my)
+
+enum {
+  KR,
+  MMAP,
+  GLIBC,
+  LEAK,
+  MY,
+};
+
+int main(int argc, char* argv[]) {
+  int mode = KR;
+  if (argc > 1) {
+    const char* mode_str = argv[1];
+    if (!strcmp(mode_str, "kr")) {
+      mode = KR;
+    } else if (!strcmp(mode_str, "mmap")) {
+      mode = MMAP;
+    } else if (!strcmp(mode_str, "glibc")) {
+      mode = GLIBC;
+    } else if (!strcmp(mode_str, "leak")) {
+      mode = LEAK;
+    } else if (!strcmp(mode_str, "my")) {
+      mode = MY;
+    } else {
+      fprintf(stderr, "unknown mode\n");
+      abort();
     }
   }
-}
 
-int main() {
   ptrs.push_back(0);
   ptr2id[0] = 0;
 
   char buf[64];
-  while (~scanf("%s", buf)) {
+  for (int i = 0; ~scanf("%s", buf); i++) {
     Log log = {};
     log.type = get_type(buf);
     void* p0;
@@ -134,7 +159,14 @@ int main() {
 
   fprintf(stderr, "benchmark start!\n");
   clock_t start = clock();
-  run_bench();
+  switch (mode) {
+    case KR: run_bench_kr(); break;
+    case MMAP: run_bench_mmap(); break;
+    case GLIBC: run_bench___libc(); break;
+    case LEAK: run_bench_leak(); break;
+    case MY: run_bench_my(); break;
+    default: abort();
+  }
   double elapsed = (double)(clock() - start) / CLOCKS_PER_SEC;
   printf("%f\n", elapsed);
 }
