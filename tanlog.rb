@@ -56,10 +56,7 @@ def setup_cmd_link(logfile, cmd)
      [raw_to_san(cmddir), raw_to_san(logfile)]].each do |cd, lf|
       FileUtils.mkdir_p(cd)
       dest = "#{cd}/#{File.basename(lf)}"
-      if File.exist?(dest)
-        File.unlink(dest)
-      end
-      FileUtils.ln_s(lf, dest)
+      FileUtils.ln_sf(lf, dest)
 
       create_prev_links(lf, cd)
     end
