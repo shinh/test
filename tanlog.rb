@@ -38,7 +38,7 @@ def raw_to_san(rawfile)
 end
 
 def create_prev_links(logfile, dir)
-  4.downto(1){|n|
+  9.downto(1){|n|
     prev_link = "#{dir}/" + "P" * n
     if File.exist?(prev_link)
       File.rename(prev_link, prev_link + "P")
