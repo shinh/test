@@ -41,19 +41,27 @@ for i in xrange(8):
     y += i % 4 * 65
     Y_BASES.append(y)
 
+imgs = sys.argv[2:]
+
 records = []
 with open(sys.argv[1]) as f:
     for line in f:
         data = json.loads(line)
         time = int(data['time'])
         # TODO: do something better.
-        if time > 1462633200 and time < 1462719600:
-            players = data['players']
-            records.append(players)
+        #if time > 1462633200 and time < 1462719600:
+        #if time > 1462798800 and time < 1462806000:
+        if time > 1465225200:
+            records.append(data)
 
 name_imgs = []
 
-imgs = sys.argv[2:]
+for i in xrange(6):
+    imgs.pop()
+    records.pop()
+
+assert len(imgs) == len(records)
+
 for gi, a in enumerate(imgs):
     img = Image.open(a)
     max_index = -1
@@ -90,7 +98,7 @@ for gi, a in enumerate(imgs):
             nid = len(name_imgs)
             ni.save('name_imgs/%03d.png' % nid)
             name_imgs.append(ni)
-        records[gi][i]['img'] = nid
+        records[gi]['players'][i]['img'] = nid
 
 table = []
 row = [''] + ['<img src="name_imgs/%03d.png">' % i
@@ -99,13 +107,19 @@ table.append(row)
 
 cnts = [[0, 0, 0] for _ in name_imgs]
 for gi, record in enumerate(records):
-    row = ['game #%d' % gi]
+    team_id = int(record['team'])
+    has_won = record['result'] == 'win'
+
+    row = ['%s / %s' % (record['map'], record['rule'])]
     row += [''] * len(name_imgs)
-    for player in record:
+    for player in record['players']:
         nid = player['img']
         kills = int(player['kills'])
         deaths = int(player['deaths'])
-        row[nid+1] = '%sk%sd %s' % (kills, deaths, kill_rate(kills, deaths))
+        color = ['#fcc', '#cfc'][(team_id == int(player['team'])) == has_won]
+        row[nid+1] = (
+            '<span style="background-color: %s">%sk%sd %s' %
+            (color, kills, deaths, kill_rate(kills, deaths)))
         cnts[nid][0] += 1
         cnts[nid][1] += kills
         cnts[nid][2] += deaths
