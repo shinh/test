@@ -164,9 +164,9 @@ inspector_proc = proc{|v|
     if v > 1000 && !v.is_a?(Bignum)
       fyi << v.human
     end
-    "#{v} (%s)" % (fyi * ' ')
+    "%s (%s)" % [v, fyi * ' ']
   elsif v.is_a?(String) && v.size == 1
-    "#{v} (%d)" % v.ord
+    "%s (%d)" % [v, v.ord]
   else
     get_irb_inspectors[true].inspect_value(v)
   end
