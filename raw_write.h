@@ -109,16 +109,18 @@
 #define RAW_PRINT_HEX(num) RAW_PRINT_BASE_N(num, 16)
 #define RAW_PRINT_INT(num) RAW_PRINT_BASE_N(num, 10)
 #define RAW_PRINT_PTR(num)                          \
-    do {                                            \
-        RAW_WRITE(2, "0x", 2);                      \
-        RAW_PRINT_BASE_N((unsigned long)num, 16);   \
-    } while (0)
+  do {                                              \
+    char buf[3] = "0x";                             \
+    RAW_WRITE(2, buf, 2);                           \
+    RAW_PRINT_BASE_N((unsigned long)num, 16);       \
+  } while (0)
 
 #define RAW_PRINT_NL_AFTER_SOMETHING(print)     \
-    do {                                        \
-        print;                                  \
-        RAW_WRITE(2, "\n", 1);                  \
-    } while (0)
+  do {                                          \
+    print;                                      \
+    char buf[2] = "\n";                         \
+    RAW_WRITE(2, buf, 1);                       \
+  } while (0)
 #define RAW_PUTS_STR(buf) RAW_PRINT_NL_AFTER_SOMETHING(RAW_PRINT_STR(buf))
 #define RAW_PUTS_HEX(buf) RAW_PRINT_NL_AFTER_SOMETHING(RAW_PRINT_HEX(buf))
 #define RAW_PUTS_INT(buf) RAW_PRINT_NL_AFTER_SOMETHING(RAW_PRINT_INT(buf))
