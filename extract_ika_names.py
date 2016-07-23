@@ -51,14 +51,18 @@ with open(sys.argv[1]) as f:
         # TODO: do something better.
         #if time > 1462633200 and time < 1462719600:
         #if time > 1462798800 and time < 1462806000:
-        if time > 1465225200:
+        #if time > 1465225200:
+        if 'lobby' not in data or data['lobby'] != 'private':
+            continue
+        if 'players' not in data:
+            continue
+        if time > 1468335600:
             records.append(data)
 
-name_imgs = []
+while len(records) < len(imgs):
+    imgs.pop(0)
 
-for i in xrange(6):
-    imgs.pop()
-    records.pop()
+name_imgs = []
 
 assert len(imgs) == len(records)
 
