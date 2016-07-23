@@ -41,12 +41,18 @@ if File.exist?(out_filename)
 end
 
 class Exe
-  attr_reader :entry, :is_pie
+  attr_reader :entry, :is_pie, :filename
 
   def initialize(filename)
     @filename = filename
     @code = File.read(filename)
     if @code[0, 4] == "\x7fELF"
+      parse_elf
+    elsif @code[0, 4] == "\x7fCGC"
+      @code[0, 4] = "\x7fELF"
+      @code[7] = "\0"
+      @filename = "/tmp/#{File.basename(@filename)}"
+      File.write(@filename, @code)
       parse_elf
     elsif @code[0, 2] == "MZ"
       parse_pe
@@ -176,13 +182,13 @@ of = File.open(out_filename, 'w')
 
 if !cmd
   if `file #{file}` =~ /PE32/
-    cmd = "ruby #{File.dirname(File.realpath(__FILE__))}/dispe.rb #{file}"
+    cmd = "#{File.dirname(File.realpath(__FILE__))}/dispe.rb #{exe.filename}"
   elsif `file #{file}` =~ / ARM/
-    cmd = "arm-linux-gnueabihf-objdump -S #{file}"
+    cmd = "arm-linux-gnueabihf-objdump -S #{exe.filename}"
   elsif `file #{file}` =~ / SH,/
-    cmd = "/usr/local/stow/binutils-all/bin/all-objdump -S #{file}"
+    cmd = "/usr/local/stow/binutils-all/bin/all-objdump -S #{exe.filename}"
   else
-    cmd = "objdump -S #{file}"
+    cmd = "objdump -S #{exe.filename}"
   end
 end
 of.puts cmd
