@@ -44,11 +44,7 @@ if File.exist?(out_filename)
 end
 
 class Exe
-<<<<<<< 8882648de252f8fbfa1213e9386a10098eae86a9
-  attr_reader :entry, :is_pie, :filename
-=======
-  attr_reader :entry, :is_pie, :is_cgc
->>>>>>> Better suppport for CGC
+  attr_reader :entry, :is_pie, :filename, :is_cgc
 
   def initialize(filename)
     @filename = filename
@@ -56,14 +52,11 @@ class Exe
     if @code[0, 4] == "\x7fELF"
       parse_elf
     elsif @code[0, 4] == "\x7fCGC"
-<<<<<<< 8882648de252f8fbfa1213e9386a10098eae86a9
-      @code[0, 4] = "\x7fELF"
-      @code[7] = "\0"
-      @filename = "/tmp/#{File.basename(@filename)}"
-      File.write(@filename, @code)
-=======
+      #@code[0, 4] = "\x7fELF"
+      #@code[7] = "\0"
+      #@filename = "/tmp/#{File.basename(@filename)}"
+      #File.write(@filename, @code)
       @is_cgc = true
->>>>>>> Better suppport for CGC
       parse_elf
     elsif @code[0, 2] == "MZ"
       parse_pe
