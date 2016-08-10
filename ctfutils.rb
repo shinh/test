@@ -222,6 +222,129 @@ class Lib
   end
 end
 
+class Binary
+  attr_reader :entry, :is_pie, :filename, :is_cgc, :code, :maps
+
+  def initialize(filename)
+    @filename = filename
+    @code = File.read(filename)
+    if @code[0, 4] == "\x7fELF"
+      parse_elf
+    elsif @code[0, 4] == "\x7fCGC"
+      #@code[0, 4] = "\x7fELF"
+      #@code[7] = "\0"
+      #@filename = "/tmp/#{File.basename(@filename)}"
+      #File.write(@filename, @code)
+      @is_cgc = true
+      parse_elf
+    elsif @code[0, 2] == "MZ"
+      parse_pe
+    end
+  end
+
+  def _get_tmpl(tmpl)
+    if @is_64
+      tmpl.tr '!', 'Q'
+    else
+      tmpl.tr '!', 'V'
+    end
+  end
+
+  def parse_elf
+    @is_64 = @code[4].ord == 2
+    tmpl = _get_tmpl('vvV!!!Vvvvvvv')
+    ehdr = @code[16, 64 - 16].unpack(tmpl)
+    @entry = ehdr[3]
+    @is_pie = false
+
+    @maps = []
+    phoff = ehdr[4]
+    phnum = ehdr[9]
+    off = phoff
+    phnum.times{
+      if @is_64
+        phdr = @code[off, 56].unpack('VVQQQQQQ')
+        p_offset = phdr[2]
+        p_vaddr = phdr[3]
+        p_filesz = phdr[5]
+        p_memsz = phdr[6]
+        off += 56
+      else
+        phdr = @code[off, 32].unpack('VVVVVVVV')
+        p_offset = phdr[1]
+        p_vaddr = phdr[2]
+        p_filesz = phdr[4]
+        p_memsz = phdr[5]
+        off += 32
+      end
+      p_type = phdr[0]
+
+      if p_type == 1
+        if p_vaddr == 0
+          @is_pie = true
+        end
+        @maps << {
+          :offset => p_offset,
+          :vaddr => p_vaddr,
+          :memsz => p_memsz,
+          :filesz => p_filesz,
+        }
+      end
+    }
+  end
+
+  def parse_pe
+    @maps = []
+    `objdump -h #{@filename}`.scan(/\n\s+\d+\s+(\.[a-z]+)(.*)/) do
+      #puts "#$1 #$2"
+      size, vma, lma, off, algn = $2.split
+      @maps << {
+        :offset => off.hex,
+        :vaddr => vma.hex,
+        :memsz => size.hex,
+        :filesz => size.hex,
+      }
+    end
+  end
+
+  def get_data(addr)
+    if !@maps
+      return nil
+    end
+
+    @maps.each do |m|
+      if addr >= m[:vaddr] && addr < m[:vaddr] + m[:memsz]
+        a = addr - m[:vaddr]
+        if a >= m[:filesz]
+          return '.bss'
+        else
+          r = []
+          o = m[:offset] + a
+          c = @code[o].ord
+
+          ok = false
+          if c == 10 || c >= 32 && c < 127
+            i = @code.index("\0", o)
+            s = @code[o..i-1]
+            if s =~ /^[ -~\n]+$/
+              ok = s.size > 2
+              r << s.inspect
+            end
+          end
+
+          if !ok
+            r << '%08x' % @code[o, 4].unpack('V')
+            r << '%x' % (@code[o, 8].unpack('Q')[0] >> 32)
+          end
+          return r * ' '
+        end
+      end
+    end
+    return nil
+  end
+
+end
+
 def shellcode_from_dump(dump)
   dump = dump.gsub(/^\s*\h+:/, '')
   sc = ''
