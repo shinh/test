@@ -1,6 +1,9 @@
 #!/usr/bin/env ruby
 
-require './ctfutils'
+$: << File.dirname(__FILE__)
+
+require 'bsearch'
+require 'ctfutils'
 
 if ARGV[0] == '--ebx-thunk'
   ARGV.shift
@@ -41,7 +44,11 @@ if File.exist?(out_filename)
 end
 
 class Exe
+<<<<<<< 8882648de252f8fbfa1213e9386a10098eae86a9
   attr_reader :entry, :is_pie, :filename
+=======
+  attr_reader :entry, :is_pie, :is_cgc
+>>>>>>> Better suppport for CGC
 
   def initialize(filename)
     @filename = filename
@@ -49,10 +56,14 @@ class Exe
     if @code[0, 4] == "\x7fELF"
       parse_elf
     elsif @code[0, 4] == "\x7fCGC"
+<<<<<<< 8882648de252f8fbfa1213e9386a10098eae86a9
       @code[0, 4] = "\x7fELF"
       @code[7] = "\0"
       @filename = "/tmp/#{File.basename(@filename)}"
       File.write(@filename, @code)
+=======
+      @is_cgc = true
+>>>>>>> Better suppport for CGC
       parse_elf
     elsif @code[0, 2] == "MZ"
       parse_pe
@@ -166,6 +177,9 @@ exe = Exe.new(file)
 
 syms = {}
 ['nm', 'nm -D'].each do |nm|
+  if exe.is_cgc
+    nm = 'i386-linux-cgc-' + nm
+  end
   `#{nm} #{file}`.each_line do |line|
     toks = line.split
     if toks.size != 3
@@ -181,8 +195,10 @@ end
 of = File.open(out_filename, 'w')
 
 if !cmd
-  if `file #{file}` =~ /PE32/
-    cmd = "#{File.dirname(File.realpath(__FILE__))}/dispe.rb #{exe.filename}"
+  if exe.is_cgc
+    cmd = "i386-linux-cgc-objdump -S #{exe.filename}"
+  elsif `file #{file}` =~ /PE32/
+    cmd = "ruby #{File.dirname(File.realpath(__FILE__))}/dispe.rb #{exe.filename}"
   elsif `file #{file}` =~ / ARM/
     cmd = "arm-linux-gnueabihf-objdump -S #{exe.filename}"
   elsif `file #{file}` =~ / SH,/
@@ -204,6 +220,11 @@ calls = []
 
 if ebx_thunk
   labels[ebx_thunk] = '[func_ebx]'
+end
+dump.each_line do |line|
+  if line =~ /^(\h+) <(.*)>:$/
+    labels[$1.hex] = $2
+  end
 end
 
 dump.each_line do |line|
@@ -331,7 +352,7 @@ end
 funcs = {}
 funcs[nil] = [[], []]
 addrs = []
-labels_a = labels.to_a.sort.reject{|a, fn|fn !~ /^\[func/}
+labels_a = labels.to_a.sort.reject{|a, fn|fn =~ /^\[L/}
 labels_a.each_with_index do |kv, i|
   addr, fn = kv
   funcs[fn] = [[], []]
@@ -341,7 +362,9 @@ end
 addrs.sort!
 
 calls = calls.map do |from, to|
-  _, _, fn = addrs.bsearch{|ca, na, fn|from < ca ? -1 : from >= na ? 1 : 0}
+  #_, _, fn = addrs.bsearch{|ca, na, fn|from < ca ? -1 : from >= na ? 1 : 0}
+  fn = addrs.bsearch{|ca, na, fn|from < ca ? 1 : from >= na ? -1 : 0}
+  fn = addrs[fn][2]
   [fn, to]
 end
 
