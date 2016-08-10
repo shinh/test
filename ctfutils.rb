@@ -205,6 +205,23 @@ class Range
   end
 end
 
+class Lib
+  def initialize(fn)
+    @filename = fn
+    @syms = {}
+    IO.popen("nm -D #{@filename}").each do |line|
+      toks = line.strip.split
+      if toks.size == 3
+        @syms[toks[2]] = toks[0].hex
+      end
+    end
+  end
+
+  def sym(n)
+    @syms[n]
+  end
+end
+
 def shellcode_from_dump(dump)
   dump = dump.gsub(/^\s*\h+:/, '')
   sc = ''
