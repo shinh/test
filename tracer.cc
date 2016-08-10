@@ -62,9 +62,9 @@ int main(int argc, char* argv[]) {
 
       Regs regs;
       CHECKED_PTRACE(PTRACE_GETREGS, pid, 0, (long)&regs);
-      if (prev != regs.rip)
-        printf("%p\n", regs.rip);
-      prev = regs.rip;
+      if (prev != regs.IP)
+        printf("%p\n", regs.IP);
+      prev = regs.IP;
 
       CHECKED_PTRACE(PTRACE_SINGLESTEP, pid, 0, 0);
     }
