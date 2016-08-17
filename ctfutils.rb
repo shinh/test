@@ -206,6 +206,8 @@ class Range
 end
 
 class Lib
+  attr_reader :syms
+
   def initialize(fn)
     @filename = fn
     @syms = {}
@@ -361,6 +363,34 @@ def shellcode_from_dump(dump)
   STDERR.puts "shellcode size: #{sc.size}"
 
   sc
+end
+
+def cookie(len)
+  r = ''
+  m = {}
+  len.times{
+    while true
+      x = rand(26+26+10)
+      x = if x < 10
+            x.to_s
+          elsif x < 10 + 26
+            (?A.ord + x - 10).chr
+          else
+            (?a.ord + x - 10 - 26).chr
+          end
+      if r.size > 3
+        l = r[-3..-1] + x
+        if m[l]
+          #STDERR.puts 'retrying'
+          next
+        end
+        m[l] = true
+      end
+      r += x
+      break
+    end
+  }
+  r
 end
 
 if ARGV[0] == '-p'
