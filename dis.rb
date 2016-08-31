@@ -69,16 +69,20 @@ end
 of = File.open(out_filename, 'w')
 
 if !cmd
+  dumpopt = '-S'
+  if !exe.is_exe
+    dumpopt += 'r'
+  end
   if exe.is_cgc
-    cmd = "i386-linux-cgc-objdump -S #{exe.filename}"
+    cmd = "i386-linux-cgc-objdump #{dumpopt} #{exe.filename}"
   elsif `file #{file}` =~ /PE32/
     cmd = "ruby #{File.dirname(File.realpath(__FILE__))}/dispe.rb #{exe.filename}"
   elsif `file #{file}` =~ / ARM/
-    cmd = "arm-linux-gnueabihf-objdump -S #{exe.filename}"
+    cmd = "arm-linux-gnueabihf-objdump #{dumpopt} #{exe.filename}"
   elsif `file #{file}` =~ / SH,/
-    cmd = "/usr/local/stow/binutils-all/bin/all-objdump -S #{exe.filename}"
+    cmd = "/usr/local/stow/binutils-all/bin/all-objdump #{dumpopt} #{exe.filename}"
   else
-    cmd = "objdump -S #{exe.filename}"
+    cmd = "objdump #{dumpopt} #{exe.filename}"
   end
 end
 of.puts cmd
@@ -160,14 +164,19 @@ dump.each_line do |line|
   end
 
   if addr != 0 && line !~ /<.*>:/ && (label = labels[addr].to_s) =~ /^\[/
-    if label =~ /func/
-      of.puts ""
+    is_func = label =~ /func/
+    if !is_func || exe.is_exe
+      if is_func
+        of.puts ""
+      end
+      of.puts "#{label}:"
     end
-    of.puts "#{label}:"
   end
 
   if line =~ /^\s*(\h+):/ && c = comments[[addr, false]]
-    of.puts c.map{|l|"# #{l}\n"} * ""
+    of.puts c.map{|l|
+      "# #{l}\n"
+    } * ""
   end
 
   annot = []
@@ -215,7 +224,9 @@ dump.each_line do |line|
 
   line.chomp!
   if !annot.empty?
-    line += " ; #{annot * ' '}"
+    if annot[0] !~ /func/ || exe.is_exe
+      line += " ; #{annot * ' '}"
+    end
   end
   if c = comments[[addr, true]]
     line += " # #{c}"

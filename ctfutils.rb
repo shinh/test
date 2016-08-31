@@ -225,7 +225,7 @@ class Lib
 end
 
 class Binary
-  attr_reader :entry, :is_pie, :filename, :is_cgc, :code, :maps
+  attr_reader :entry, :is_pie, :filename, :is_cgc, :code, :maps, :is_exe
 
   def initialize(filename)
     @filename = filename
@@ -256,6 +256,7 @@ class Binary
     @is_64 = @code[4].ord == 2
     tmpl = _get_tmpl('vvV!!!Vvvvvvv')
     ehdr = @code[16, 64 - 16].unpack(tmpl)
+    @is_exe = ehdr[0] != 1
     @entry = ehdr[3]
     @is_pie = false
 
