@@ -423,3 +423,11 @@ def invmod(e, et)
   end
   x % et
 end
+
+def gnu_hash(n)
+  h = 5381
+  n.each_byte{|c|
+    h = (h * 33 + c) & ((1 << 32) - 1)
+  }
+  h
+end
