@@ -2,8 +2,12 @@
 
 $: << File.dirname(__FILE__)
 
-require 'bsearch'
-require 'ctfutils'
+if [].respond_to?(:bsearch)
+  require './ctfutils'
+else
+  require 'bsearch'
+  require 'ctfutils'
+end
 
 if ARGV[0] == '--ebx-thunk'
   ARGV.shift
