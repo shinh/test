@@ -131,7 +131,8 @@ class IO
           if c
             STDOUT.putc c
           else
-            STDOUT.puts 'Connection closed (read)'
+            close
+            STDOUT.puts "Connection closed (read) #{$?}"
             return
           end
         else r[0][0] == STDIN
