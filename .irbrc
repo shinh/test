@@ -149,7 +149,7 @@ def get_irb_inspectors
   end
 end
 
-inspector_proc = proc{|v|
+def prettify(v)
   fyi = []
   if v.is_a?(Rational)
     fyi << v.to_f
@@ -168,7 +168,16 @@ inspector_proc = proc{|v|
   elsif v.is_a?(String) && v.size == 1
     "%s (%d)" % [v, v.ord]
   else
-    get_irb_inspectors[true].inspect_value(v)
+    v
+  end
+end
+
+inspector_proc = proc{|v|
+  pv = prettify(v)
+  if pv != v
+    pv
+  else
+    get_irb_inspectors[true].inspect_value(pv)
   end
 }
 get_irb_inspectors['mine'] = IRB::Inspector(inspector_proc)
@@ -176,4 +185,8 @@ IRB.conf[:INSPECT_MODE] = 'mine'
 
 def frenzy_lucky(cps, bank = 0)
   [cps * 900 * 7, bank * 0.15, cps * 900 * 7 / 0.15]
+end
+
+def l(a)
+  system("lv -ci #{a}")
 end

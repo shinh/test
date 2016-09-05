@@ -357,12 +357,12 @@ def shellcode_from_dump(dump)
   end
 
   if i = sc.index("\0")
-    STDERR.puts "WARNING: NULL in shellcode at #{i}"
+    STDERR.puts "[*] WARNING: NULL in shellcode at #{i}"
   end
   if i = sc.index("\n")
-    STDERR.puts "WARNING: linebreak in shellcode at #{i}"
+    STDERR.puts "[*] WARNING: linebreak in shellcode at #{i}"
   end
-  STDERR.puts "shellcode size: #{sc.size}"
+  STDERR.puts "[-] shellcode size: #{sc.size}"
 
   sc
 end
@@ -432,4 +432,100 @@ def gnu_hash(n)
     h = (h * 33 + c) & ((1 << 32) - 1)
   }
   h
+end
+
+def runcmd(cmd)
+  if cmd.class == Array
+    pid = spwan(*cmd)
+  elsif cmd.class == String
+    pid = spawn(cmd)
+  else
+    raise "Command type is wrong: #{cmd}"
+  end
+  Process.waitpid(pid)
+  if $?.exitstatus == 0
+    return
+  end
+  raise $?.to_s
+end
+
+def crc32(tbl, data)
+  if tbl.size != 256
+    raise "wrong table size: #{tbl.size}"
+  end
+  r = 0xffffffff
+  data.each_byte{|b|
+    r = tbl[(r ^ b) & 0xff] ^ (r >> 8)
+  }
+  r ^ 0xffffffff
+end
+
+class Fixnum
+  def cuint
+    self & ((1 << 32) - 1)
+  end
+
+  def cint
+    v = cuint
+    (v < (1 << 31)) ? v : v - (1 << 32)
+  end
+
+  def human
+    if self >= 10_000_000_000
+      "#{(self/1000_000_000).to_i}G"
+    elsif self >= 10_000_000
+      "#{(self/1000_000).to_i}M"
+    elsif self >= 10_000
+      "#{(self/1000).to_i}k"
+    else
+      "#{self}"
+    end
+  end
+end
+
+def prettify(v)
+  fyi = []
+  if v.is_a?(Rational)
+    fyi << v.to_f
+    fyi << v
+    v = v.to_i
+  end
+  if v.is_a?(Integer) && v <= 2**257
+    fyi << '0x%x' % v
+    if v > 0 && v < 127
+      fyi << "%s" % v.chr.inspect.tr('"', "'")
+    end
+    if v > 1000 && !v.is_a?(Bignum)
+      fyi << v.human
+    end
+    "%s (%s)" % [v, fyi * ' ']
+  elsif v.is_a?(String) && v.size == 1
+    "%s (%d)" % [v, v.ord]
+  else
+    v
+  end
+end
+
+def pr(*v, &c)
+  if v.empty?
+    if c
+      v = prettify(c.call)
+      fn, ln = c.source_location
+      code = ''
+      if File.exist?(fn)
+        code = File.readlines(fn)[ln-1]
+        code.strip!
+        code.sub!(/^pr\s+/, '')
+      end
+      if code[0]
+        STDERR.puts "[-] #{code} = #{prettify(c.call)}"
+      else
+        STDERR.puts "[-] #{prettify(c.call)}"
+      end
+    else
+      STDERR.print("[-] \n")
+    end
+  else
+    STDERR.puts "[-] " +v.map{|_|prettify(_)} * ' '
+  end
 end
