@@ -460,6 +460,33 @@ def crc32(tbl, data)
   r ^ 0xffffffff
 end
 
+def rev_crc32(tbl, want)
+  if tbl.size != 256
+    raise "wrong table size: #{tbl.size}"
+  end
+
+  wi = []
+  wv = want ^ 0xffffffff
+  4.times{|i|
+    tbl.each_with_index do |v, i|
+      if ((wv ^ v) >> 24) == 0
+        wi << i
+        wv = (wv ^ v) << 8
+        break
+      end
+    end
+  }
+
+  s = ''
+  r = 0xffffffff
+  wi.reverse.each do |i|
+    b = (r & 0xff) ^ i
+    s << b.chr
+    r = tbl[i] ^ (r >> 8)
+  end
+  s
+end
+
 class Fixnum
   def cuint
     self & ((1 << 32) - 1)
