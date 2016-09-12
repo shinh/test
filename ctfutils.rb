@@ -435,6 +435,16 @@ def gnu_hash(n)
 end
 
 def runcmd(cmd)
+  if !respond_to?(:spawn)
+    if cmd.class == Array
+      cmd = cmd * ' '
+    end
+    if !system(cmd)
+      raise $?.to_s
+    end
+    return
+  end
+
   if cmd.class == Array
     pid = spwan(*cmd)
   elsif cmd.class == String
@@ -508,6 +518,9 @@ class Fixnum
       "#{self}"
     end
   end
+end
+
+class Rational
 end
 
 def prettify(v)
