@@ -1,0 +1,3 @@
+#!/bin/sh
+
+git for-each-ref --sort='-committerdate' refs/heads --format='%(committerdate:short)%09(%(committerdate:relative))%09%(refname:short) %(subject)'

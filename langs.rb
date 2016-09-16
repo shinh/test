@@ -21,7 +21,9 @@ end
 m = {}
 File.readlines(TBL_FILE).each do |line|
   toks = line.split
-  m[toks[0]] = toks[1]
+  up = toks[1]
+  up = up.upcase if !%w(ja ko zh).include?(toks[0])
+  m[toks[0]] = up
   m[toks[1]] = toks[0]
   m[toks[1].upcase] = toks[0]
 end
