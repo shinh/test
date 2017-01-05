@@ -1,13 +1,19 @@
-#a=10**9
-#b=2*10**9
-a=15634
-b=15634+456
-v=1
-1.upto(a) do |i|
-  v*=b-i+1
-end
-1.upto(a) do |i|
-  v/=i
+# https://twitter.com/kagewaza_uswest/status/816593363952508928
+
+def comb(n, k)
+  a = (n-k+1..n).inject(1, &:*)
+  b = (1..k).inject(1, &:*)
+  a / b
 end
 
-p v%4990
+NUM_TRIALS = 2140
+EXPECTED = Rational(15, 1000)
+NUM_SSRS_RANGE = (0 .. 21)
+
+a = 0
+NUM_TRIALS.times do |n|
+  next if !NUM_SSRS_RANGE.include?(n)
+  a += comb(NUM_TRIALS, n) * EXPECTED ** n * (1 - EXPECTED) ** (NUM_TRIALS - n)
+end
+
+p a.to_f
