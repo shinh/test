@@ -121,7 +121,10 @@ end
 
 def end_tanlog(args)
   screen(['-X', 'log', 'off'])
-  sanitize_log(args[0]) if args[0]
+  fname = args[0]
+  if fname && File.size(fname) < 100_000_000
+    sanitize_log(fname)
+  end
 end
 
 def show_recent_logs(args)
