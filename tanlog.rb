@@ -74,6 +74,10 @@ def setup_log(cmd)
   FileUtils.ln_sf(raw_to_san(logdir), "#{TANLOG_DIR}/.TODAY")
   File.rename("#{TANLOG_DIR}/.TODAY", "#{TANLOG_DIR}/TODAY")
 
+  FileUtils.rm_f("#{TANLOG_DIR}/RAW/.TODAY")
+  FileUtils.ln_sf(logdir, "#{TANLOG_DIR}/RAW/.TODAY")
+  File.rename("#{TANLOG_DIR}/RAW/.TODAY", "#{TANLOG_DIR}/RAW/TODAY")
+
   time = now.strftime('%H:%M:%S')
   n = 0
   while true
@@ -101,6 +105,7 @@ end
 
 def sanitize_log(rawfile)
   sanfile = raw_to_san(rawfile)
+  return if File.exist?(sanfile)
 
   File.open(rawfile) do |ifile|
     File.open(sanfile, 'w') do |of|
@@ -134,6 +139,33 @@ def show_recent_logs(args)
   end
 end
 
+def show_recent_paths(args)
+  logs = Dir.glob("#{TANLOG_DIR}/RAW/TODAY/*").sort
+  paths = []
+  logs.reverse.each do |log|
+    next if log !~ /\.log$/ || !File.file?(log)
+    cmdline, *lines = File.readlines(log)
+    cmd = cmdline.split[1]
+    next if cmd == 'wl' || cmdline =~ /tanlog/
+
+    lines.reverse.each do |line|
+      if line =~ /https?:\/\/[\S&&[:print:]]+\/[\S&&[:print:]]+/
+        paths << "#{$&} in #{cmd}@#{log}"
+      elsif line =~ /(^|\s)(\/[\S&&[:print:]]+\/[\S&&[:print:]]+)/
+        path = $2
+        if File.exist?(path)
+          paths << "#{path} in #{cmd}@#{log}"
+        end
+      end
+    end
+    paths.uniq!
+    if paths.size >= 100
+      break
+    end
+  end
+  puts paths * "\n"
+end
+
 cmd, *args = ARGV
 
 case cmd
@@ -145,6 +177,8 @@ when 'end'
   end_tanlog(args)
 when 'recent'
   show_recent_logs(args)
+when 'paths'
+  show_recent_paths(args)
 else
   raise "Unknown tanlog command: #{cmd}"
 end
