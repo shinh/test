@@ -23,8 +23,16 @@ EOC
 Encoding.default_external = 'binary'
 Encoding.default_internal = 'binary'
 
-def rotate_log
-  # TODO
+def human(n)
+  if n >= 10_000_000_000
+    "#{(n/1000_000_000).to_i}G"
+  elsif n >= 10_000_000
+    "#{(n/1000_000).to_i}M"
+  elsif n >= 10_000
+    "#{(n/1000).to_i}k"
+  else
+    "#{n}"
+  end
 end
 
 def screen(args)
@@ -166,6 +174,47 @@ def show_recent_paths(args)
   puts paths * "\n"
 end
 
+def gc(args)
+  dry_run = args[0] != '-f'
+  size = 0
+  cnt = 0
+  total_size = 0
+  total_cnt = 0
+
+  basedirs = [TANLOG_DIR, "#{TANLOG_DIR}/RAW"]
+  basedirs.each do |basedir|
+    Dir.foreach(basedir).sort.each do |datedir|
+      if datedir !~ /(\d\d\d\d)-(\d\d)-(\d\d)/
+        next
+      end
+      date = Time.mktime($1.to_i, $2.to_i, $3.to_i)
+      elapsed = Time.now - date
+      datedir = basedir + "/" + datedir
+
+      Dir.glob("#{datedir}/*.log").sort.each do |log|
+        sz = File.size(log)
+        total_size += sz
+        total_cnt += 1
+        if (sz > 100_000_000 ||
+            sz > 1_000_000 && elapsed > 14 * 24 * 60 * 60)
+          size += sz
+          cnt += 1
+          if !dry_run
+            File.unlink(log)
+          end
+        end
+      end
+    end
+  end
+
+  report = "#{human(size)}B/#{human(total_size)} (#{cnt}/#{total_cnt} files)"
+  if dry_run
+    puts "will remove #{report}"
+  else
+    puts "removed #{report}"
+  end
+end
+
 cmd, *args = ARGV
 
 case cmd
@@ -179,6 +228,8 @@ when 'recent'
   show_recent_logs(args)
 when 'paths'
   show_recent_paths(args)
+when 'gc'
+  gc(args)
 else
   raise "Unknown tanlog command: #{cmd}"
 end
