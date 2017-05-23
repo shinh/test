@@ -79,7 +79,7 @@ vector<float> topk_avx_heap(const vector<float>& data) {
     __m256 mask = _mm256_cmp_ps(worst, v, _CMP_GE_OQ);
     if (!(_mm256_movemask_ps(mask) & 255))
       continue;
-    float buf[8] __attribute__((aligned(16)));
+    float buf[8] __attribute__((aligned(32)));
     _mm256_store_ps(buf, v);
     for (int j = 0; j < 8; j++) {
       float v = buf[j];
