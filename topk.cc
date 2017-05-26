@@ -103,7 +103,6 @@ vector<float> topk_avx_nth(const vector<float>& data) {
   const size_t aligned_k = (K + 7) & ~7;
   for (size_t i = 0; i < aligned_k; i++)
     topk.push_back(data[i]);
-
   sort(topk.begin(), topk.end());
   topk.resize(K);
 
@@ -111,9 +110,8 @@ vector<float> topk_avx_nth(const vector<float>& data) {
   for (size_t i = aligned_k; i < data.size(); i += 8) {
     __m256 v = _mm256_loadu_ps(&data[i]);
     __m256 mask = _mm256_cmp_ps(worst, v, _CMP_GE_OQ);
-    if (!(_mm256_movemask_ps(mask) & 255)) {
+    if (!(_mm256_movemask_ps(mask) & 255))
       continue;
-    }
     float buf[8] __attribute__((aligned(32)));
     _mm256_store_ps(buf, v);
     for (int j = 0; j < 8; j++) {
@@ -155,7 +153,7 @@ int main() {
 
   BENCH(topk_avx_heap);
   BENCH(topk_avx_nth);
-  BENCH(topk_sort);
   BENCH(topk_nth);
   BENCH(topk_heap);
+  BENCH(topk_sort);
 }
