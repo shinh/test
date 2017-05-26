@@ -116,7 +116,7 @@ vector<float> topk_avx_nth(const vector<float>& data) {
     _mm256_store_ps(buf, v);
     for (int j = 0; j < 8; j++) {
       float v = buf[j];
-      if (topk[0] < v)
+      if (topk[K-1] < v)
         continue;
       topk.push_back(v);
     }
