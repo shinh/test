@@ -157,9 +157,10 @@ def show_recent_paths(args)
     next if cmd == 'wl' || cmdline =~ /tanlog/
 
     lines.reverse.each do |line|
-      if line =~ /https?:\/\/[\S&&[:print:]]+\/[\S&&[:print:]]+/
+      cls = /[\S&&[:print:]&&[^(){}\[\]]]/
+      if line =~ /https?:\/\/#{cls}+\/#{cls}+/
         paths << "#{$&} in #{cmd}@#{log}"
-      elsif line =~ /(^|\s)(\/[\S&&[:print:]]+\/[\S&&[:print:]]+)/
+      elsif line =~ /(^|\s)(\/#{cls}+\/#{cls}+)/
         path = $2
         if File.exist?(path)
           paths << "#{path} in #{cmd}@#{log}"
