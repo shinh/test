@@ -1,3 +1,13 @@
+def fib_slow(n)
+  if n<=1
+    return 1
+  else
+    fib_slow(n-1)+fib_slow(n-2)
+  end
+end
+
+#p fib_slow(46)
+
 def fib(n)
   a=0
   b=1
