@@ -2,12 +2,7 @@
 
 $: << File.dirname(__FILE__)
 
-if [].respond_to?(:bsearch)
-  require './ctfutils'
-else
-  require 'bsearch'
-  require 'ctfutils'
-end
+require './ctfutils'
 
 if ARGV[0] == '--ebx-thunk'
   ARGV.shift
@@ -247,10 +242,8 @@ end
 addrs.sort!
 
 calls = calls.map do |from, to|
-  #_, _, fn = addrs.bsearch{|ca, na, fn|from < ca ? -1 : from >= na ? 1 : 0}
-  fn = addrs.bsearch{|ca, na, fn|from < ca ? 1 : from >= na ? -1 : 0}
-  fn = addrs[fn][2]
-  [fn, to]
+  fn = addrs.bsearch{|ca, na, fn|from < na}
+  [fn[2], to]
 end
 
 calls.each do |from, to|
