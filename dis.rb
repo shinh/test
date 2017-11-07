@@ -2,7 +2,7 @@
 
 $: << File.dirname(__FILE__)
 
-require './ctfutils'
+require_relative 'ctfutils'
 
 if ARGV[0] == '--ebx-thunk'
   ARGV.shift
