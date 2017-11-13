@@ -190,3 +190,46 @@ end
 def l(a)
   system("lv -ci #{a}")
 end
+
+def maseki(a)
+  a = a.sort_by{|v|-v}
+  s = 0
+  a.each_with_index do |v, i|
+    s += (v.to_f / 2 ** i).ceil
+  end
+  s
+end
+
+# from http://rosettacode.org/wiki/Modular_inverse#Ruby
+
+def extended_gcd(a, b)
+  last_remainder, remainder = a.abs, b.abs
+  x, last_x, y, last_y = 0, 1, 1, 0
+  while remainder != 0
+    last_remainder, (quotient, remainder) = remainder, last_remainder.divmod(remainder)
+    x, last_x = last_x - quotient*x, x
+    y, last_y = last_y - quotient*y, y
+  end
+
+  return last_remainder, last_x * (a < 0 ? -1 : 1)
+end
+
+def invmod(e, et)
+  g, x = extended_gcd(e, et)
+  if g != 1
+    raise 'Teh maths are broken!'
+  end
+  x % et
+end
+
+def modpow(a, b, n)
+  r = 1
+  while b > 0
+    if (b & 1) == 1
+      r = (r * a) % n
+    end
+    b >>= 1
+    a = (a * a) % n
+  end
+  r
+end
