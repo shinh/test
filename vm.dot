@@ -1,0 +1,21 @@
+digraph VM {
+  rankdir=LR;
+  node [shape=rectangle] "プログラム言語\n(C, Java, Ruby, JS, Lua)";
+  node [shape=rectangle] "VM\n(JVM, YARV, LuaVM)";
+  node [shape=rectangle] "マシンコード\n(x86, ARM)";
+  node [shape=rectangle] "実行結果\nHello, world!";
+
+  "プログラム言語\n(C, Java, Ruby, JS, Lua)" -> "VM\n(JVM, YARV, LuaVM)" [ label = "javac" color = green ];
+  "プログラム言語\n(C, Java, Ruby, JS, Lua)" -> "VM\n(JVM, YARV, LuaVM)" [ label = "ruby" color = red ];
+  "プログラム言語\n(C, Java, Ruby, JS, Lua)" -> "VM\n(JVM, YARV, LuaVM)" [ label = "lua" color = red ];
+  "VM\n(JVM, YARV, LuaVM)" -> "マシンコード\n(x86, ARM)" [ label = "java(hotspot)" color = red ];
+  "VM\n(JVM, YARV, LuaVM)" -> "マシンコード\n(x86, ARM)" [ label = "luajit" color = red ];
+  "VM\n(JVM, YARV, LuaVM)" -> "実行結果\nHello, world!" [ label = "ruby" color = red ];
+  "VM\n(JVM, YARV, LuaVM)" -> "実行結果\nHello, world!" [ label = "java" color = red ];
+  "マシンコード\n(x86, ARM)" -> "実行結果\nHello, world!" [ label = "CPU" color = red ];
+  "プログラム言語\n(C, Java, Ruby, JS, Lua)" -> "マシンコード\n(x86, ARM)" [ label = "gcc/clang" color = green ];
+  "プログラム言語\n(C, Java, Ruby, JS, Lua)" -> "マシンコード\n(x86, ARM)" [ label = "v8" color = red ];
+  "プログラム言語\n(C, Java, Ruby, JS, Lua)" -> "マシンコード\n(x86, ARM)" [ label = "AOT" color = green ];
+  "プログラム言語\n(C, Java, Ruby, JS, Lua)" -> "実行結果\nHello, world!" [ label = "BASIC" color = green ];
+ 
+}
