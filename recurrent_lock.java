@@ -17,20 +17,8 @@ class MyClass {
     // Because we read both |x| and |y|...
     synchronized(mu_y) {
       synchronized(mu_x) {
-        return getX() + getY();
+        return x + y;
       }
-    }
-  }
-
-  int getX() {
-    synchronized(mu_x) {
-      return x;
-    }
-  }
-
-  int getY() {
-    synchronized(mu_y) {
-      return y;
     }
   }
 
@@ -54,8 +42,9 @@ public class recurrent_lock {
           }
         }
     };
-
     thread.start();
+
+    // Keep adding y to x.
     for (int i = 0; i < 10000; i++) {
       obj.addXToY();
       Thread.sleep(1);
