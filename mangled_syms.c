@@ -1,3 +1,10 @@
+// Example output:
+//
+// libc text: 0x7f40049a7000 0x7f4004b58000 /lib/x86_64-linux-gnu/libc-2.27.so
+// libc data: 0x7f4004d5b000 0x7f4004d5d000 /lib/x86_64-linux-gnu/libc-2.27.so
+// 0x7f40049de910
+// exit /lib/x86_64-linux-gnu/libc.so.6
+
 #define _GNU_SOURCE
 #include <dlfcn.h>
 #include <signal.h>
