@@ -497,7 +497,7 @@ def rev_crc32(tbl, want)
   s
 end
 
-class Fixnum
+class Integer
   def cuint
     self & ((1 << 32) - 1)
   end
