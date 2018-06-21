@@ -1,0 +1,22 @@
+class Autoloader(object):
+    def __init__(self, module_name):
+        self.__module_name = module_name
+        self.__module = None
+
+    def _load_module(self):
+        if self.__module is None:
+            self.__module = __import__(self.__module_name)
+
+    def __getattr__(self, name):
+        self._load_module()
+        return getattr(self.__module, name)
+
+    def __dir__(self):
+        self._load_module()
+        return dir(self.__module)
+
+chainer = Autoloader('chainer')
+np = Autoloader('numpy')
+os = Autoloader('os')
+sys = Autoloader('sys')
+tf = Autoloader('tensorflow')
