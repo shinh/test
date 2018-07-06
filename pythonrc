@@ -16,6 +16,7 @@ class Autoloader(object):
         return dir(self.__module)
 
 chainer = Autoloader('chainer')
+cupy = Autoloader('cupy')
 np = Autoloader('numpy')
 os = Autoloader('os')
 sys = Autoloader('sys')
