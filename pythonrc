@@ -17,7 +17,9 @@ class Autoloader(object):
 
 chainer = Autoloader('chainer')
 cupy = Autoloader('cupy')
+json = Autoloader('json')
 np = Autoloader('numpy')
 os = Autoloader('os')
 sys = Autoloader('sys')
+threading = Autoloader('threading')
 tf = Autoloader('tensorflow')
