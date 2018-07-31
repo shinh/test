@@ -1,0 +1,73 @@
+#!/usr/bin/ruby
+
+def human(size)
+  units = 'kMGTPEZY'
+  unit_index = -1
+  size *= 10
+  while size >= 10000 && unit_index < units.size - 1
+    unit_index += 1
+    size /= 1000
+  end
+  unit = unit_index >= 0 ? units[unit_index] : ''
+  if unit_index >= 0 && size < 100
+    return '%d.%d%s' % [size / 10, size % 10, unit]
+  else
+    return '%d%s' % [size / 10, unit]
+  end
+end
+
+def parse_line(line)
+  size, name = line.split(' ', 2)
+  size = size.to_i
+  [size, name]
+end
+
+mu = Mutex.new
+started = false
+tmpfile = '/tmp/du.tmp'
+TOP_N = 3
+
+if STDERR.isatty
+  thread = Thread.new do
+    while true
+      sleep 0.1
+      next if !File.exist?(tmpfile)
+      mu.synchronize do
+        Thread.exit if started
+        dirs = 0
+        total = 0
+        tops = []
+        IO.popen("sort -nr #{tmpfile}") do |pipe|
+          pipe.each do |line|
+            size, name = parse_line(line)
+            dirs += 1
+            total += size
+            if tops.size < TOP_N
+              tops << "#{name.chomp}:#{human(size)}"
+            end
+          end
+        end
+        Thread.exit if started
+        STDERR.puts "#{human(total)}/#{human(dirs)} [#{tops * ' '}]"
+      end
+    end
+  end
+end
+
+open('/tmp/du.out', 'w') do |of|
+  IO.popen("du -b #{ARGV[0]} | tee #{tmpfile} | sort -n") do |pipe|
+    pipe.each do |line|
+      mu.synchronize do
+        started = true
+      end
+      size, name = parse_line(line)
+      line = "#{human(size)} #{name}"
+      of.puts line
+      puts line
+    end
+  end
+end
+
+if thread
+  thread.join
+end
