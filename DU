@@ -48,7 +48,13 @@ if STDERR.isatty
           end
         end
         Thread.exit if started
-        STDERR.puts "#{human(total)}/#{human(dirs)} [#{tops * ' '}]"
+        msg = "\r#{human(total)}/#{human(dirs)} [#{tops * ' '}]"
+        if msg.size > 79
+          msg = msg[0,79]
+        else
+          msg = msg.ljust(79)
+        end
+        STDERR.print msg
       end
     end
   end
