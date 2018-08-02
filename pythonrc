@@ -1,3 +1,5 @@
+_help = help
+
 class Autoloader(object):
     def __init__(self, module_name):
         self.__module_name = module_name
@@ -14,6 +16,17 @@ class Autoloader(object):
     def __dir__(self):
         self._load_module()
         return dir(self.__module)
+
+    def help(self):
+        _help(self.__module)
+
+
+def help(x):
+    if isinstance(x, Autoloader):
+        x._load_module()
+        x.help()
+    else:
+        _help(x)
 
 chainer = Autoloader('chainer')
 cupy = Autoloader('cupy')
