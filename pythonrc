@@ -1,3 +1,5 @@
+_help = help
+
 class Autoloader(object):
     def __init__(self, module_name):
         self.__module_name = module_name
@@ -15,11 +17,24 @@ class Autoloader(object):
         self._load_module()
         return dir(self.__module)
 
+    def help(self):
+        _help(self.__module)
+
+
+def help(x):
+    if isinstance(x, Autoloader):
+        x._load_module()
+        x.help()
+    else:
+        _help(x)
+
 chainer = Autoloader('chainer')
 cupy = Autoloader('cupy')
 json = Autoloader('json')
 np = Autoloader('numpy')
+onnx = Autoloader('onnx')
 os = Autoloader('os')
 sys = Autoloader('sys')
 threading = Autoloader('threading')
 tf = Autoloader('tensorflow')
+torch = Autoloader('torch')
