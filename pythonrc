@@ -1,24 +1,35 @@
 _help = help
 
-class Autoloader(object):
-    def __init__(self, module_name):
-        self.__module_name = module_name
-        self.__module = None
 
-    def _load_module(self):
-        if self.__module is None:
-            self.__module = __import__(self.__module_name)
+class Lazy(object):
+    def __init__(self, fn):
+        self._fn = fn
+        self._obj = None
+
+    def _load_lazy(self):
+        if self._obj is None:
+            self._obj = self._fn()
+            assert self._obj is not None
 
     def __getattr__(self, name):
-        self._load_module()
-        return getattr(self.__module, name)
+        self._load_lazy()
+        return getattr(self._obj, name)
 
     def __dir__(self):
-        self._load_module()
-        return dir(self.__module)
+        self._load_lazy()
+        return dir(self.__obj)
 
     def help(self):
-        _help(self.__module)
+        _help(self._obj)
+
+
+class Autoloader(Lazy):
+    def __init__(self, module_name):
+        super(Autoloader, self).__init__(self._load_module)
+        self.__module_name = module_name
+
+    def _load_module(self):
+        return __import__(self.__module_name)
 
 
 def help(x):
@@ -38,3 +49,6 @@ sys = Autoloader('sys')
 threading = Autoloader('threading')
 tf = Autoloader('tensorflow')
 torch = Autoloader('torch')
+
+F = Lazy(lambda: chainer.functions)
+L = Lazy(lambda: chainer.links)
