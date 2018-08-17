@@ -42,6 +42,7 @@ def help(x):
 chainer = Autoloader('chainer')
 cupy = Autoloader('cupy')
 json = Autoloader('json')
+mxnet = Autoloader('mxnet')
 np = Autoloader('numpy')
 onnx = Autoloader('onnx')
 os = Autoloader('os')
