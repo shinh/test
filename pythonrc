@@ -42,6 +42,7 @@ def help(x):
 chainer = Autoloader('chainer')
 cupy = Autoloader('cupy')
 glob = Autoloader('glob')
+inspect = Autoloader('inspect')
 json = Autoloader('json')
 math = Autoloader('math')
 mock = Autoloader('mock')
