@@ -8,4 +8,3 @@ gtree = gast.ast_to_gast(tree)
 
 for node in gtree.body:
     print(ast.dump(node))
-
