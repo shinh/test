@@ -40,7 +40,9 @@ def help(x):
         _help(x)
 
 chainer = Autoloader('chainer')
+chx = Autoloader('chainerx')
 cupy = Autoloader('cupy')
+gast = Autoloader('gast')
 glob = Autoloader('glob')
 inspect = Autoloader('inspect')
 json = Autoloader('json')
