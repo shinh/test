@@ -2,6 +2,8 @@
 #include <chainerx/context.h>
 #include <chainerx/routines/creation.h>
 
+#include <chainerx/testing/array.h>
+
 #include <iostream>
 #include <vector>
 
@@ -30,4 +32,8 @@ int main() {
     std::cerr << MakeArray(chainerx::Dtype::kFloat32, chainerx::Shape{2, 3}, std::vector<float>({1, 2, 3, 5, 7, 9}).data()) << std::endl;
     // Should have been kFloat64.
     std::cerr << MakeArray(chainerx::Dtype::kFloat32, chainerx::Shape{2, 3}, std::vector<double>({1, 2, 3, 5, 7, 9}).data()) << std::endl;
+
+    // Or with ArrayBuilder.
+    std::cerr << chainerx::testing::BuildArray(chainerx::Shape{2, 3}).WithData(std::vector<int>{4, 5, 6, 10, 12, 14}).Build() << std::endl;
+    std::cerr << chainerx::testing::BuildArray(chainerx::Shape{2, 3}).WithData(std::vector<double>{4, 5, 6, 10, 12, 14}).Build() << std::endl;
 }
