@@ -31,41 +31,21 @@ def gen_range_tbl(gb, name, num):
     return range_tbl
 
 
-def gen_composites_loop():
-    gb = onnx_script.GraphBuilder('gen_composites')
-    iter = gb.input('composites_iter', 0)
-    cond = gb.input('composites_cond', True)
-    n = gb.input('n', 0)
-
-    i = gb.Add([iter, gb.const(2)])
-    is_greater = gb.Greater([to_float(gb, i), to_float(gb, n)])
-    mod = gb.Mul([gb.Div([i, n]), n])
-    is_multiple = gb.Equal([i, mod])
-    is_composite = gb.And([is_greater, is_multiple])
-
-    gb.output(gb.const(True), True)
-    gb.output(gb.Identity([n]), 0)
-    gb.output(is_composite, True)
-    return gb.make_graph()
+def calc_mod(gb, a, b):
+    return gb.Sub([a, gb.Mul([gb.Div([a, b]), b])])
 
 
-def gen_sieve_loop(initial_sieve_val):
+def gen_sieve_loop(initial_sieve_val, sieve_range_tbl):
     gb = onnx_script.GraphBuilder('gen_sieve')
     iter = gb.input('sieve_iter', 0)
     cond = gb.input('sieve_cond', True)
     sieve = gb.input('sieve_in', initial_sieve_val)
 
     n = gb.Add([iter, gb.const(2)])
-    composites_loop = gen_composites_loop()
-    _, composites_table = gb.Loop([gb.const(len(initial_sieve_val)),
-                                   gb.const(True),
-                                   n],
-                                  body=composites_loop,
-                                  outputs=['dummy', 'composites_table'])
-    # Not sure why we need this.
-    composites_table = gb.Reshape([composites_table,
-                                   gb.const([len(initial_sieve_val)])])
-    sieve = gb.Or([sieve, composites_table])
+    is_not_me = gb.Not([gb.Equal([sieve_range_tbl, n])])
+    is_multiple = gb.Equal([calc_mod(gb, sieve_range_tbl, n), gb.const(0)])
+    is_composite = gb.And([is_not_me, is_multiple])
+    sieve = gb.Or([sieve, is_composite])
 
     gb.output(gb.const(True), True)
     gb.output(sieve, initial_sieve_val)
@@ -103,7 +83,7 @@ def gen_primes_loop(initial_primes_val, sieve, range_tbl, num_primes):
     ten = gb.const(10)
     for i in range(4):
         v = gb.Div([val, gb.const(10 ** i)])
-        m = gb.Sub([v, gb.Mul([gb.Div([v, ten]), ten])])
+        m = calc_mod(gb, v, ten)
         is_4949 = gb.Or([is_4949, gb.Equal([m, gb.const(4)])])
         is_4949 = gb.Or([is_4949, gb.Equal([m, gb.const(9)])])
 
@@ -158,11 +138,13 @@ def gen_prime():
     # ONNX runtime does not allow using inputs of enclosing graphs.
     num_primes = gb.Identity([num_primes])
 
-    range_tbl = gen_range_tbl(gb, 'prime', max_num_primes)
+    sieve_range_tbl = gen_range_tbl(gb, 'sieve', max_val)
+    sieve_range_tbl = gb.Add([sieve_range_tbl, gb.const(2)])
+    prime_range_tbl = gen_range_tbl(gb, 'prime', max_num_primes)
 
     initial_sieve_val = np.array([False] * max_val)
 
-    sieve_loop = gen_sieve_loop(initial_sieve_val)
+    sieve_loop = gen_sieve_loop(initial_sieve_val, sieve_range_tbl)
     sieve = gb.Loop([gb.const(max_val),
                      gb.const(True),
                      gb.const(initial_sieve_val)],
@@ -172,7 +154,7 @@ def gen_prime():
     initial_primes_val = np.array([0] * max_num_primes)
     primes_loop = gen_primes_loop(initial_primes_val,
                                   sieve,
-                                  range_tbl,
+                                  prime_range_tbl,
                                   num_primes)
     primes, _ = gb.Loop([gb.const(max_val),
                          gb.const(True),
