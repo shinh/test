@@ -73,11 +73,7 @@ def gen_primes_loop_else(initial_primes_val, primes, np, iter, range_tbl):
     gb = onnx_script.GraphBuilder('primes_loop_else')
     onehot = gb.Cast([gb.Equal([np, range_tbl])],
                      to=onnx.TensorProto.INT64)
-    # onehot = gb.Mul([onehot, gb.Add([iter, gb.const(2)])])
     onehot = gb.Mul([onehot, gb.Add([iter, gb.const(2)])])
-    #value = gb.Expand([gb.Add([iter, gb.const(2)]),
-    #                   gb.const(len(initial_primes_val))])
-    #onehot = gb.Mul([onehot, value])
     primes = gb.Add([primes, onehot])
     gb.output(primes, initial_primes_val)
     gb.output(gb.Add([np, gb.const(1)]), 0)
