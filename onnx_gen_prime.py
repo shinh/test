@@ -93,6 +93,23 @@ def gen_primes_loop(initial_primes_val, sieve, range_tbl, num_primes):
     return gb.make_graph()
 
 
+def gen_large_const(gb, v):
+    assert np.all(v[0] == v)
+    return gb.const(v)
+
+    # ONNX runtime does not have Pad.
+    assert len(v.shape) == 1
+    x = gb.const([v[0]])
+    y = gb.Pad([x],
+               pads=[v.shape[0] - 1, 0],
+               value=float(v[0]))
+    return y
+
+    # ONNX runtime does not have Expand.
+    x = gb.const(v[0])
+    return gb.Expand([x, gb.const(v.shape)])
+
+
 def get_sieve_for_test(max_val):
     sieve = [False] * max_val
     for n in range(2, max_val + 2):
@@ -135,7 +152,7 @@ def gen_prime():
     sieve_loop = gen_sieve_loop(initial_sieve_val, sieve_range_tbl)
     sieve = gb.Loop([gb.const(max_val),
                      gb.const(True),
-                     gb.const(initial_sieve_val)],
+                     gen_large_const(gb, initial_sieve_val)],
                     body=sieve_loop,
                     outputs=['sieve'])
 
@@ -146,7 +163,7 @@ def gen_prime():
                                   num_primes)
     primes, _ = gb.Loop([gb.const(max_val),
                          gb.const(True),
-                         gb.const(initial_primes_val),
+                         gen_large_const(gb, initial_primes_val),
                          gb.const(0)],
                         body=primes_loop,
                         outputs=['primes', 'num_primes_out'])
