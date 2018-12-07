@@ -52,7 +52,7 @@ def gen_sieve_loop(initial_sieve_val):
                                    n],
                                   body=composites_loop,
                                   outputs=['dummy', 'composites_table'])
-    # Not sure why we need this.
+    # Not sure why ONNX runtime needs this.
     composites_table = gb.Reshape([composites_table,
                                    gb.const([len(initial_sieve_val)])])
     sieve = gb.Or([sieve, composites_table])
@@ -142,7 +142,7 @@ def gen_prime():
                             gb.const(True), gb.const(True)],
                            body=gen_range_loop(),
                            outputs=['range_dummy_output', 'range_tbl'])
-    # Not sure why we need this.
+    # Not sure why ONNX runtime needs this.
     range_tbl = gb.Reshape([range_tbl, gb.const([max_num_primes])])
 
     initial_sieve_val = np.array([False] * max_val)

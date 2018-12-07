@@ -26,7 +26,7 @@ def gen_range_tbl(gb, name, num):
                            body=gen_range_loop(),
                            outputs=[name + '_range_dummy_output',
                                     name + '_range_tbl'])
-    # Not sure why we need this.
+    # Not sure why ONNX runtime needs this.
     range_tbl = gb.Reshape([range_tbl, gb.const([num])])
     return range_tbl
 
