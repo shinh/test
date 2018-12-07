@@ -117,11 +117,9 @@ def get_primes_for_test(num_primes):
 
 
 def gen_prime():
-    max_val = 600
+    max_val = 10000
     # ONNX runtime crashes when this is not a multiple of 8.
-    max_num_primes = 96
-    #max_val = 1200
-    #max_num_primes = 100
+    max_num_primes = 1000
     gb = onnx_script.GraphBuilder('gen_prime')
 
     num_primes = gb.input('num_primes', max_num_primes)
