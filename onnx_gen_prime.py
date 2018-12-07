@@ -80,13 +80,12 @@ def gen_primes_loop_else(initial_primes_val, primes, np, iter, range_tbl):
     return gb.make_graph()
 
 
-def gen_primes_loop(initial_primes_val, sieve, range_tbl):
+def gen_primes_loop(initial_primes_val, sieve, range_tbl, num_primes):
     gb = onnx_script.GraphBuilder('primes_loop')
     iter = gb.input('prime_iter', 0)
     cond = gb.input('prime_cond', True)
     primes = gb.input('prime_primes', initial_primes_val)
     np = gb.input('np', 0)
-    num_primes = gb.input('num_primes_in_loop', 0)
 
     is_composite = gb.Gather([sieve, iter])
     then_graph = gen_primes_loop_then(initial_primes_val, primes, np)
@@ -101,7 +100,6 @@ def gen_primes_loop(initial_primes_val, sieve, range_tbl):
     gb.output(cond, True)
     gb.output(primes, initial_primes_val)
     gb.output(np, 0)
-    gb.output(gb.Identity([num_primes]), 0)
     return gb.make_graph()
 
 
@@ -137,6 +135,8 @@ def gen_prime():
     gb = onnx_script.GraphBuilder('gen_prime')
 
     num_primes = gb.input('num_primes', max_num_primes)
+    # ONNX runtime does not allow using inputs of enclosing graphs.
+    num_primes = gb.Identity([num_primes])
 
     _, range_tbl = gb.Loop([gb.const(max_num_primes),
                             gb.const(True), gb.const(True)],
@@ -157,16 +157,14 @@ def gen_prime():
     initial_primes_val = np.array([0] * max_num_primes)
     primes_loop = gen_primes_loop(initial_primes_val,
                                   sieve,
-                                  range_tbl)
-    primes, _, _ = gb.Loop([gb.const(max_val),
-                            gb.const(True),
-                            gb.const(initial_primes_val),
-                            gb.const(0),
-                            num_primes],
-                           body=primes_loop,
-                           outputs=['primes',
-                                    'num_primes_out',
-                                    'num_primes_out2'])
+                                  range_tbl,
+                                  num_primes)
+    primes, _ = gb.Loop([gb.const(max_val),
+                         gb.const(True),
+                         gb.const(initial_primes_val),
+                         gb.const(0)],
+                        body=primes_loop,
+                        outputs=['primes', 'num_primes_out'])
 
     primes_val = get_primes_for_test(max_num_primes)
     gb.output(primes, primes_val)
