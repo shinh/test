@@ -120,22 +120,25 @@ class GraphBuilder(object):
         self.gradients = []
         self.ids = GraphBuilder.ids
 
-    def __getattr__(self, name):
-        if not name[0].isupper():
-            raise AttributeError('Unknown attribute: %s' % name)
+    def __getattr__(self, op_type):
+        if not op_type[0].isupper():
+            raise AttributeError('Unknown attribute: %s' % op_type)
 
-        def make_node(inputs=[], outputs=None, **kwargs):
-            return self.make_node(name, inputs=inputs, outputs=outputs,
-                                  **kwargs)
+        def make_node(inputs=[], outputs=None, name=None, **kwargs):
+            return self.make_node(op_type, inputs=inputs, outputs=outputs,
+                                  name=name, **kwargs)
 
         return make_node
 
-    def make_node(self, name, outputs=None, **kwargs):
+    def make_node(self, op_type, outputs=None, name=None, **kwargs):
         if outputs is None:
-            outputs = [self.gen_id(name)]
+            outputs = [self.gen_id(op_type)]
         elif isinstance(outputs, str):
             outputs = [outputs]
-        node = onnx.helper.make_node(name, outputs=outputs, **kwargs)
+        if name is None:
+            name = self.gen_id(op_type)
+        node = onnx.helper.make_node(op_type, outputs=outputs, name=name,
+                                     **kwargs)
         self.nodes.append(node)
         if len(outputs) == 1:
             return outputs[0]
