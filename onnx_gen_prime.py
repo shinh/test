@@ -1,3 +1,20 @@
+# How to generate the ONNX file:
+#
+# $ wget https://raw.githubusercontent.com/shinh/test/master/onnx_gen_prime.py
+# $ wget https://raw.githubusercontent.com/shinh/test/master/onnx_script.py
+# $ python3 onnx_gen_prime.py
+# $ ls gen_prime
+#
+# How to run it on ONNX runtime:
+#
+# $ python3
+# >>> import numpy as np
+# >>> import onnxruntime
+# >>> sess = onnxruntime.InferenceSession('gen_prime/model.onnx')
+# >>> input_name = sess.get_inputs()[0].name
+# >>> output_name = sess.get_outputs()[0].name
+# >>> sess.run([output_name], {input_name: np.array(1000)})[0]
+
 import numpy as np
 import onnx
 import onnx_script
