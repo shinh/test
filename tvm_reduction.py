@@ -45,3 +45,7 @@ b = tvm.nd.array(np.zeros(nn, dtype=B.dtype), ctx)
 fcuda(a, b)
 tvm.testing.assert_allclose(
     b.asnumpy(), np.sum(a.asnumpy(), axis=1), rtol=1e-4)
+
+evaluator = fcuda.time_evaluator(fcuda.entry_name, ctx, number=400, repeat=100)
+times = evaluator(a, b)
+print('%f' % times.mean)
