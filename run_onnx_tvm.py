@@ -11,6 +11,7 @@ import onnx.numpy_helper
 import tvm
 
 from tvm.contrib import graph_runtime
+from tvm.contrib.debugger import debug_runtime
 
 
 def load_test_data(data_dir):
@@ -69,7 +70,10 @@ def run(args):
     tvm_inputs = {k: tvm.nd.array(v, ctx=ctx) for k, v in inputs.items()}
     tvm_params = {k: tvm.nd.array(v, ctx=ctx) for k, v in params.items()}
 
-    graph_module = graph_runtime.create(graph, lib, ctx)
+    if args.debug:
+        graph_module = debug_runtime.create(graph, lib, ctx)
+    else:
+        graph_module = graph_runtime.create(graph, lib, ctx)
 
     graph_module.set_input(**tvm_inputs)
     graph_module.set_input(**tvm_params)
@@ -90,6 +94,7 @@ def main():
     parser.add_argument('test_dir')
     parser.add_argument('--dump_nnvm', action='store_true')
     parser.add_argument('--target', type=str, default='cuda')
+    parser.add_argument('--debug', '-g', action='store_true')
     parser.add_argument('--opt_level', '-O', type=int, default=3)
     args = parser.parse_args()
 
