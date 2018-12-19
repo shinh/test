@@ -59,6 +59,9 @@ def run(args):
     graph, lib, params = compile(
         symbol, args.target, input_names, inputs, params)
 
+    if args.dump_nnvm:
+        print(graph.json())
+
     ctx = tvm.gpu()
 
     # Prepare inputs.
@@ -84,6 +87,7 @@ def run(args):
 def main():
     parser = argparse.ArgumentParser(description='Run ONNX by TVM')
     parser.add_argument('test_dir')
+    parser.add_argument('--dump_nnvm', action='store_true')
     parser.add_argument('--target', type=str, default='cuda')
     args = parser.parse_args()
 
