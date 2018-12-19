@@ -26,7 +26,7 @@ def load_test_data(data_dir):
     return tuple(inout_values)
 
 
-def compile(symbol, target, input_names, inputs, params):
+def compile(symbol, target, input_names, inputs, params, opt_level):
     shape_dict = {}
     dtype_dict = {}
     for name, value in zip(input_names, inputs.values()):
@@ -35,7 +35,7 @@ def compile(symbol, target, input_names, inputs, params):
     for name, value in params.items():
         shape_dict[name] = value.shape
         dtype_dict[name] = value.dtype
-    with nnvm.compiler.build_config(opt_level=3):
+    with nnvm.compiler.build_config(opt_level=opt_level):
         graph, lib, params = nnvm.compiler.build(symbol, target,
                                                  shape=shape_dict,
                                                  dtype=dtype_dict,
@@ -57,7 +57,7 @@ def run(args):
     # assert len(output_names) == len(outputs)
 
     graph, lib, params = compile(
-        symbol, args.target, input_names, inputs, params)
+        symbol, args.target, input_names, inputs, params, args.opt_level)
 
     if args.dump_nnvm:
         print(graph.json())
@@ -89,6 +89,7 @@ def main():
     parser.add_argument('test_dir')
     parser.add_argument('--dump_nnvm', action='store_true')
     parser.add_argument('--target', type=str, default='cuda')
+    parser.add_argument('--opt_level', '-O', type=int, default=3)
     args = parser.parse_args()
 
     run(args)
