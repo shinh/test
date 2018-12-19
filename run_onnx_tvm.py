@@ -60,6 +60,7 @@ def run(args):
         symbol, args.target, input_names, inputs, params, args.opt_level)
 
     if args.dump_nnvm:
+        print(graph.ir())
         print(graph.json())
 
     ctx = tvm.gpu()
