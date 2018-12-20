@@ -1,5 +1,6 @@
 import argparse
 import glob
+import logging
 import os
 import sys
 
@@ -105,6 +106,9 @@ def main():
     parser.add_argument('--debug', '-g', action='store_true')
     parser.add_argument('--opt_level', '-O', type=int, default=3)
     args = parser.parse_args()
+
+    if args.debug:
+        logging.getLogger().setLevel(logging.DEBUG)
 
     run(args)
 
