@@ -61,6 +61,7 @@ sys = Autoloader('sys')
 threading = Autoloader('threading')
 tf = Autoloader('tensorflow')
 torch = Autoloader('torch')
+topi = Autoloader('topi')
 tvm = Autoloader('tvm')
 
 F = Lazy(lambda: chainer.functions)
