@@ -38,6 +38,8 @@ s[B].set_store_predicate(tx.var.equal(0))
 fcuda = tvm.build(s, [A, B], "cuda")
 print(fcuda.imported_modules[0].get_source())
 
+print(tvm.save_json(s))
+
 nn = 128
 ctx  = tvm.gpu(0)
 a = tvm.nd.array(np.random.uniform(size=(nn, nn)).astype(A.dtype), ctx)

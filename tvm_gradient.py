@@ -1,6 +1,7 @@
 import nnvm
 import nnvm.symbol as sym
 import nnvm.compiler.graph_util as graph_util
+import tvm
 
 def sample():
     x = sym.Variable("x")
@@ -20,9 +21,10 @@ def nnvm_conv():
     z = sym.conv2d(x, y, channels=3, kernel_size=3)
     grad = graph_util.gradients([z], [x, y])
     print(grad)
+    print(grad[0].debug_str())
 
 
-#nnvm_conv()
+nnvm_conv()
 
 
 def nnvm_bn():
