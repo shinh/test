@@ -3,6 +3,7 @@ import glob
 import logging
 import os
 import sys
+import time
 
 import nnvm
 import nnvm.compiler
@@ -97,6 +98,14 @@ def run(args):
         print('%s: OK' % name)
     print('ALL OK')
 
+    if args.iterations > 1:
+        num_iterations = args.iterations - 1
+        start = time.time()
+        for t in range(num_iterations):
+            graph_module.run()
+        elapsed = time.time() - start
+        print('Elapsed: %.3f msec' % (elapsed * 1000 / num_iterations))
+
 
 def main():
     parser = argparse.ArgumentParser(description='Run ONNX by TVM')
@@ -104,6 +113,7 @@ def main():
     parser.add_argument('--dump_nnvm', action='store_true')
     parser.add_argument('--target', type=str, default='cuda')
     parser.add_argument('--debug', '-g', action='store_true')
+    parser.add_argument('--iterations', '-I', type=int, default=1)
     parser.add_argument('--opt_level', '-O', type=int, default=3)
     args = parser.parse_args()
 
