@@ -3,6 +3,7 @@ import glob
 import logging
 import os
 import sys
+import time
 
 import chainer
 import cupy
@@ -130,12 +131,21 @@ def run(args):
         print('%s: OK' % name)
     print('ALL OK')
 
+    if args.iterations > 1:
+        num_iterations = args.iterations - 1
+        start = time.time()
+        for t in range(num_iterations):
+            context.execute(args.batch_size, bindings)
+        elapsed = time.time() - start
+        print('Elapsed: %.3f msec' % (elapsed * 1000 / num_iterations))
+
 
 def main():
     parser = argparse.ArgumentParser(description='Run ONNX by TensorRT')
     parser.add_argument('test_dir')
     parser.add_argument('--batch_size', type=int, default=1)
     parser.add_argument('--debug', '-g', action='store_true')
+    parser.add_argument('--iterations', '-I', type=int, default=1)
     args = parser.parse_args()
 
     if args.debug:
