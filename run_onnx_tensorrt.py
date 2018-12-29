@@ -136,6 +136,7 @@ def run(args):
         start = time.time()
         for t in range(num_iterations):
             context.execute(args.batch_size, bindings)
+            cupy.cuda.device.Device().synchronize()
         elapsed = time.time() - start
         print('Elapsed: %.3f msec' % (elapsed * 1000 / num_iterations))
 
