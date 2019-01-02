@@ -149,8 +149,6 @@ def tune_and_evaluate(tuning_opt):
                                             shape={input_name: input_shape}, dtype=dtype,
                                             symbols=(nnvm.sym.conv2d,))
 
-    print(len(tasks))
-    raise
     # # run tuning tasks
     print("Tuning...")
     tune_tasks(tasks, **tuning_opt)
