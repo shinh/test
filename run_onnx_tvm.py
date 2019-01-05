@@ -36,7 +36,8 @@ def load_test_data(data_dir, input_names, output_names):
     return tuple(inout_values)
 
 
-def compile(symbol, target, input_names, inputs, params, opt_level):
+def compile(symbol, target, input_names, inputs, params,
+            opt_level, autotvm_log):
     shape_dict = {}
     dtype_dict = {}
     for name, value in zip(input_names, inputs.values()):
@@ -46,10 +47,17 @@ def compile(symbol, target, input_names, inputs, params, opt_level):
         shape_dict[name] = value.shape
         dtype_dict[name] = value.dtype
     with nnvm.compiler.build_config(opt_level=opt_level):
-        graph, lib, params = nnvm.compiler.build(symbol, target,
-                                                 shape=shape_dict,
-                                                 dtype=dtype_dict,
-                                                 params=params)
+        if autotvm_log:
+            with tvm.autotvm.apply_history_best(autotvm_log):
+                graph, lib, params = nnvm.compiler.build(symbol, target,
+                                                         shape=shape_dict,
+                                                         dtype=dtype_dict,
+                                                         params=params)
+        else:
+            graph, lib, params = nnvm.compiler.build(symbol, target,
+                                                     shape=shape_dict,
+                                                     dtype=dtype_dict,
+                                                     params=params)
     return graph, lib, params
 
 
@@ -67,7 +75,8 @@ def run(args):
     # assert len(output_names) == len(outputs)
 
     graph, lib, params = compile(
-        symbol, args.target, input_names, inputs, params, args.opt_level)
+        symbol, args.target, input_names, inputs, params,
+        args.opt_level, args.autotvm_log)
 
     if args.dump_nnvm:
         print(graph.ir())
@@ -122,6 +131,7 @@ def main():
     parser.add_argument('--debug', '-g', action='store_true')
     parser.add_argument('--iterations', '-I', type=int, default=1)
     parser.add_argument('--opt_level', '-O', type=int, default=3)
+    parser.add_argument('--autotvm_log', type=str)
     args = parser.parse_args()
 
     if args.debug:
