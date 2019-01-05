@@ -82,9 +82,14 @@ def run(args):
     for name, value in params.items():
         tvm_inputs[name] = tvm.nd.array(value, ctx=ctx)
 
+    graph_module = None
     if args.debug:
-        graph_module = debug_runtime.create(graph, lib, ctx)
-    else:
+        try:
+            graph_module = debug_runtime.create(graph, lib, ctx)
+        except:
+            print('debug_runtime is disabled. '
+                  'Set USE_GRAPH_RUNTIME_DEBUG=ON and rebuild TVM')
+    if graph_module is None:
         graph_module = graph_runtime.create(graph, lib, ctx)
 
     graph_module.set_input(**tvm_inputs)
