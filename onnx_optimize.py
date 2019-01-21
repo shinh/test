@@ -4,7 +4,7 @@ import onnx.optimizer
 if len(sys.argv) != 3:
     raise RuntimeError('Usage: %s input.onnx output.onnx' % sys.argv[0])
 passes = [
-    # 'eliminate_identity',
+    'eliminate_identity',
     # 'eliminate_nop_transpose',
     # 'eliminate_nop_pad',
     # 'eliminate_unused_initializer',
