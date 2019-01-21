@@ -1,3 +1,4 @@
+import time
 import numpy as np
 import cupy
 from cupy.cuda import cudnn
@@ -16,11 +17,20 @@ iw = 9
 ih = 9
 kw = 3
 kh = 3
+
+bsize = 32
+ichan = 64
+ochan = 64
+iw = 56
+ih = 56
+kw = 3
+kh = 3
+
 ow = iw - kw + 1
 oh = ih - kh + 1
 
 
-def conv(x, w, b, x_nhwc=False, w_nhwc=False):
+def conv(x, w, b, count=1, x_nhwc=False, w_nhwc=False):
     y_shape = (bsize, ochan, ow, oh)
     d_layout = cudnn.CUDNN_TENSOR_NCHW
     w_layout = cudnn.CUDNN_TENSOR_NCHW
@@ -37,10 +47,17 @@ def conv(x, w, b, x_nhwc=False, w_nhwc=False):
     x = cupy.array(x)
     w = cupy.array(w)
     b = cupy.array(b)
-    y = cupy.ones(y_shape, dtype=np.float32)
-    cupy.cudnn.convolution_forward(x, w, b, y, (0, 0), (1, 1), (1, 1), 1,
-                                   auto_tune=True, tensor_core='auto',
-                                   d_layout=d_layout, w_layout=w_layout)
+    y = cupy.ones(y_shape, dtype=x.dtype)
+    times = [time.time()]
+    for _ in range(count):
+        cupy.cudnn.convolution_forward(x, w, b, y, (0, 0), (1, 1), (1, 1), 1,
+                                       auto_tune=True, tensor_core='auto',
+                                       d_layout=d_layout, w_layout=w_layout)
+        cupy.cuda.device.Device().synchronize()
+        times.append(time.time())
+
+    if count > 1:
+        print('Elapsed:', (times[-1] - times[1]) / (count - 1))
 
     y = chainer.cuda.to_cpu(y)
     if x_nhwc:
@@ -57,3 +74,8 @@ print(np.allclose(conv(x, w, b), conv(x, w, b, x_nhwc=True)))
 
 #print(conv(x, w, b, w_nhwc=True).shape)
 print(conv(x, w, b, x_nhwc=True, w_nhwc=True).shape)
+print(np.allclose(conv(x, w, b), conv(x, w, b, x_nhwc=True, w_nhwc=True)))
+
+conv(x, w, b, count=500)
+conv(x, w, b, count=500, x_nhwc=True)
+conv(x, w, b, count=500, x_nhwc=True, w_nhwc=True)
