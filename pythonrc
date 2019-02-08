@@ -17,7 +17,7 @@ class Lazy(object):
 
     def __dir__(self):
         self._load_lazy()
-        return dir(self.__obj)
+        return dir(self._obj)
 
     def help(self):
         _help(self._obj)
