@@ -10,12 +10,13 @@ int main() {
     clock_t s = clock();
     //memcpy(dst, src, N);
 
-/*
+#if 0
+
     int i;
     for (i = 0; i < N; i++) *dst++ = *src++;
-*/
 
-/*
+#elif 1
+
     int i;
     for (i = 0; i < N/8; i++) {
         asm("movq (%0), %%mm0;"
@@ -24,7 +25,8 @@ int main() {
         src+=8;
         dst+=8;
     }
-*/
+
+#else
 
     int i;
     for (i = 0; i < N/32; i++) {
@@ -45,6 +47,8 @@ int main() {
         src+=32;
         dst+=32;
     }
+
+#endif
 
     printf("%f\n", ((double)clock() - s) / CLOCKS_PER_SEC);
 }
