@@ -64,6 +64,7 @@ tf = Autoloader('tensorflow')
 torch = Autoloader('torch')
 topi = Autoloader('topi')
 tvm = Autoloader('tvm')
+types = Autoloader('types')
 
 F = Lazy(lambda: chainer.functions)
 L = Lazy(lambda: chainer.links)
