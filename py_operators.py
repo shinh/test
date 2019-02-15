@@ -5,7 +5,7 @@ ops = set()
 for o in dir(operator):
     ops.add(o)
 
-for o in ops:
+for o in sorted(ops):
     if o.startswith('_'):
         continue
     if o.endswith('_'):
