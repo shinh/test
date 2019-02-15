@@ -6,7 +6,7 @@ for o in dir(operator):
     ops.add(o)
 
 oops = []
-for o in sorted(ops):
+for o in ops:
     if o.startswith('_'):
         continue
     if o.endswith('_'):
@@ -23,7 +23,7 @@ oops.extend(
      '__rfloordiv__', '__rmod__', '__rdivmod__', '__rpow__', '__rlshift__',
      '__rrshift__', '__rand__', '__rxor__', '__ror__'])
 
-for o in oops:
+for o in sorted(oops):
     print('    def %s(self, *args):' % o)
     print("        return self.__getattr__('%s')(*args)" % o)
     print('')
