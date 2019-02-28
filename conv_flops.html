@@ -1,0 +1,71 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html> <head>
+<meta charset="utf-8">
+<title>Conv電卓</title>
+
+<script>
+
+function $(id) {
+  return document.getElementById(id);
+}
+
+function mega(v) {
+  return (v / 1000 / 1000) + "M";
+}
+
+function calc() {
+  var bsize = $("bsize").value;
+  var ichan = $("ichan").value;
+  var ochan = $("ochan").value;
+  var outw = $("outw").value;
+  var outh = $("outh").value;
+  var ksize = $("ksize").value;
+  var eratio = $("eratio").value;
+
+  var conv_flops = bsize * ichan * ochan * outw * outh * ksize * ksize;
+  $("conv_flops").innerHTML = mega(conv_flops);
+
+  var conv_1x1_flops = bsize * ichan * ochan * outw * outh * 1 * 1;
+  $("conv_1x1_flops").innerHTML = mega(conv_1x1_flops);
+
+  var conv_dw_flops = bsize * ichan * 1 * outw * outh * ksize * ksize;
+  $("conv_dw_flops").innerHTML = mega(conv_dw_flops);
+
+  var conv_mnv1_flops = conv_1x1_flops + conv_dw_flops;
+  $("conv_mnv1_flops").innerHTML = mega(conv_mnv1_flops);
+
+  var conv_1x1_exp_flops = conv_1x1_flops / eratio;
+  $("conv_1x1_exp_flops").innerHTML = mega(conv_1x1_exp_flops);
+
+  var conv_mnv2_flops = conv_1x1_exp_flops * 2 + conv_dw_flops;
+  $("conv_mnv2_flops").innerHTML = mega(conv_mnv2_flops);
+}
+
+</script>
+
+</head>
+
+<body onload="calc()">
+<h1>Conv電卓</h1>
+
+bsize: <input id="bsize" onkeydown="calc()" value="1"><br>
+ichan: <input id="ichan" onkeydown="calc()" value="256"><br>
+ochan: <input id="ochan" onkeydown="calc()" value="256"><br>
+outw: <input id="outw" onkeydown="calc()" value="272"><br>
+outh: <input id="outh" onkeydown="calc()" value="200"><br>
+ksize: <input id="ksize" onkeydown="calc()" value="3"><br>
+expand_ratio: <input id="eratio" onkeydown="calc()" value="6"><br>
+
+conv: <span id="conv_flops"></span> flops<br>
+1x1 conv: <span id="conv_1x1_flops"></span> flops<br>
+depthwise conv: <span id="conv_dw_flops"></span> flops<br>
+mobilenet v1 conv: <span id="conv_mnv1_flops"></span> flops<br>
+1x1 expanded conv: <span id="conv_1x1_exp_flops"></span> flops<br>
+mobilnet v2 conv: <span id="conv_mnv2_flops"></span> flops<br>
+
+<hr>
+<address></address>
+<!-- hhmts start -->
+Last modified: Thu Feb 28 13:30:40 JST 2019
+<!-- hhmts end -->
+</body> </html>
