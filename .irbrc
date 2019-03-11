@@ -66,7 +66,7 @@ def combination(x, y)
   r
 end
 
-class Fixnum
+class Integer
   def cuint
     self & ((1 << 32) - 1)
   end
@@ -161,7 +161,7 @@ def prettify(v)
     if v > 0 && v < 127
       fyi << "%s" % v.chr.inspect.tr('"', "'")
     end
-    if v > 1000 && !v.is_a?(Bignum)
+    if v > 1000 && v < 2**64
       fyi << v.human
     end
     "%s (%s)" % [v, fyi * ' ']
