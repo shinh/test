@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -eux
+
+submodule="$1"
+name=$(basename "${submodule}")
+
+git branch -D bump-${name} || echo 'Branch delete error ignored'
+
+pushd "${submodule}"
+git fetch
+git checkout origin/master
+commit=$(git log | head -1 | awk '{print $2}')
+popd
+
+git commit -a -m "Bump up ${name} version
+
+to ${commit}
+"
