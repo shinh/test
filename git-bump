@@ -6,7 +6,7 @@ submodule="$1"
 name=$(basename "${submodule}")
 
 git branch -D bump-${name} || echo 'Branch delete error ignored'
-git checkout bump-${name}
+git checkout -b bump-${name}
 
 pushd "${submodule}"
 git fetch
