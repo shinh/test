@@ -1,0 +1,6 @@
+#!/bin/bash
+
+b=$1
+shift
+
+git checkout origin/$b -b $b
