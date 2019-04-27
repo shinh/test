@@ -116,7 +116,7 @@ def run(args):
     gpu_inputs = to_gpu(inputs)
     gpu_outputs = []
     for output in outputs:
-        gpu_outputs.append(cupy.zeros_like(output))
+        gpu_outputs.append(cupy.zeros_like(cupy.array(output)))
     bindings = [a.data.ptr for a in gpu_inputs]
     bindings += [a.data.ptr for a in gpu_outputs]
 
