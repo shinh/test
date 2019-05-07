@@ -55,6 +55,8 @@ end
 urls = [
   ['7th', "#{$URL_BASE}content/www/us/en/ark/products/series/129702/intel-nuc-mini-pc-with-7th-generation-intel-core-processors.html"],
   ['8th', "#{$URL_BASE}content/www/us/en/ark/products/series/129701/intel-nuc-mini-pc-with-8th-generation-intel-core-processors.html"],
+  ['pentium', "#{$URL_BASE}content/www/us/en/ark/products/series/129703/intel-nuc-mini-pc-with-intel-pentium-processors.html"],
+  ['celeron', "#{$URL_BASE}content/www/us/en/ark/products/series/129704/intel-nuc-mini-pc-with-intel-celeron-processors.html"],
 ]
 
 if true
@@ -67,6 +69,8 @@ if true
       cpu_detail = cpu_details[cpu_path]
       raise if !nuc_detail
       raise if !cpu_detail
+
+      cpu_name = cpu_detail['ProcessorNumber']
 
       nuc = []
       nuc << nuc_name
@@ -100,7 +104,7 @@ if true
   end
 
   tbl.each do |row|
-    puts row * ','
+    puts row * "\t"
   end
 
 else
