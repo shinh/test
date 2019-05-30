@@ -11,10 +11,15 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--gpu', type=int, default=-1)
 parser.add_argument('--size', type=int, default=224)
 parser.add_argument('--model', default='ResNet50')
+parser.add_argument('--pretrained-model', type=str)
 parser.add_argument('--kwargs', default='{}')
 args = parser.parse_args()
 
-model = getattr(C, args.model)(**eval(args.kwargs))
+kwargs = eval(args.kwargs)
+if args.pretrained_model is not None:
+    kwargs['pretrained_model'] = args.pretrained_model
+
+model = getattr(C, args.model)(**kwargs)
 if args.gpu >= 0:
     chainer.cuda.get_device_from_id(args.gpu).use()
     model.to_gpu()
