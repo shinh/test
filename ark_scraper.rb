@@ -57,6 +57,14 @@ urls = [
   ['8th', "#{$URL_BASE}content/www/us/en/ark/products/series/129701/intel-nuc-mini-pc-with-8th-generation-intel-core-processors.html"],
   ['pentium', "#{$URL_BASE}content/www/us/en/ark/products/series/129703/intel-nuc-mini-pc-with-intel-pentium-processors.html"],
   ['celeron', "#{$URL_BASE}content/www/us/en/ark/products/series/129704/intel-nuc-mini-pc-with-intel-celeron-processors.html"],
+
+  ['8th-kit', "#{$URL_BASE}/content/www/us/en/ark/products/series/129705/intel-nuc-kit-with-8th-generation-intel-core-processors.html"],
+  ['7th-kit', "#{$URL_BASE}/content/www/us/en/ark/products/series/129706/intel-nuc-kit-with-7th-generation-intel-core-processors.html"],
+  ['6th-kit', "#{$URL_BASE}/content/www/us/en/ark/products/series/129707/intel-nuc-kit-with-6th-generation-intel-core-processors.html"],
+  ['5th-kit', "#{$URL_BASE}/content/www/us/en/ark/products/series/129708/intel-nuc-kit-with-5th-generation-intel-core-processors.html"],
+  ['pentium-kit', "#{$URL_BASE}/content/www/us/en/ark/products/series/129709/intel-nuc-kit-with-intel-pentium-processors.html"],
+  ['celeron-kit', "#{$URL_BASE}/content/www/us/en/ark/products/series/129710/intel-nuc-kit-with-intel-celeron-processors.html"],
+  ['atom-kit', "#{$URL_BASE}/content/www/us/en/ark/products/series/129711/intel-nuc-kit-with-intel-atom-processors.html"],
 ]
 
 if true
