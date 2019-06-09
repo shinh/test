@@ -3,6 +3,7 @@
 set -ex
 
 git checkout master
+git pull
 git fetch upstream
 git rebase upstream/master master
 git push origin master
