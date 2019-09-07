@@ -21,9 +21,9 @@ def enc_uabs(bin)
   x = 0
   bin.each_char do |s|
     if s == '0'
-      x = ceil_div((x + 1) * l, c1) - 1
+      x = ceil_div((x + 1) * l, c0) - 1
     else
-      x = x * l / c0
+      x = x * l / c1
     end
   end
   [x, c0, c1]
@@ -37,18 +37,31 @@ def dec_uabs(e, c0, c1)
   x = e
   o = ''
   l.times do
-    s = ceil_div((x + 1) * c0, l) - ceil_div(x * c0, l)
+    z = ceil_div(x * c1, l)
+    s = ceil_div((x + 1) * c1, l) - z
     o += s.to_s
     if s == 0
-      x = x - ceil_div(x * c0, l)
+      x = x - z
     else
-      x = ceil_div(x * c0, l)
+      x = z
     end
   end
   o.reverse
 end
 
-o = rand_bin(800, 0.3)
-e = enc_uabs(o)
-d = dec_uabs(*e)
-puts o == d ? "uABS OK" : "uABS FAIL"
+def test_uabs(l, r)
+  o = rand_bin(l, r)
+  e = enc_uabs(o)
+  d = dec_uabs(*e)
+  cl = e[0].to_s(2).size
+  tl = e[1,2].map{|c|
+    r = c.to_f / l
+    -c * Math.log2(r)
+  }.sum.to_i
+  puts "uABS orig_bits=#{l} pr(0)=#{r} cmp_bits=#{cl} shannon=#{tl}"
+  puts o == d ? "OK" : "FAIL"
+end
+
+test_uabs(800, 0.1)
+test_uabs(800, 0.3)
+test_uabs(800, 0.5)
