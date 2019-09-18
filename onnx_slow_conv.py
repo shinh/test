@@ -28,20 +28,20 @@ for node in model.graph.node:
     for input in node.input[1:]:
         split_params.add(input)
 
-        tmp_names = []
-        for i in range(num_split):
-            tmp_name = '%s_sub_%d' % (output, i)
-            tmp_names.append(tmp_name)
-            n = onnx.helper.make_node('Conv',
-                                      inputs=node.input,
-                                      outputs=[tmp_name])
-            for a in node.attribute:
-                n.attribute.add().CopyFrom(a)
-            new_nodes.append(n)
-        n = onnx.helper.make_node('Sum',
-                                  inputs=tmp_names,
-                                  outputs=[output])
+    tmp_names = []
+    for i in range(num_split):
+        tmp_name = '%s_sub_%d' % (output, i)
+        tmp_names.append(tmp_name)
+        n = onnx.helper.make_node('Conv',
+                                  inputs=node.input,
+                                  outputs=[tmp_name])
+        for a in node.attribute:
+            n.attribute.add().CopyFrom(a)
         new_nodes.append(n)
+    n = onnx.helper.make_node('Sum',
+                              inputs=tmp_names,
+                              outputs=[output])
+    new_nodes.append(n)
 
 for name in split_params:
     params[name] = params[name] / num_split
