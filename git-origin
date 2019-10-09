@@ -3,4 +3,5 @@
 b=$1
 shift
 
+git branch -D $b
 git checkout origin/$b -b $b
