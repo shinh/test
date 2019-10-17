@@ -13,7 +13,7 @@ const int C = 396;
 
 std::vector<float> TakeNaive(const std::vector<float>& x,
                              const std::vector<int>& indices) {
-  std::vector<float> y(A * C * D);
+  std::vector<float> y(A * C);
   for (int i = 0; i < A; ++i) {
     for (int j = 0; j < C; ++j) {
       y[i * C + j] = x[i * B + indices[j]];
