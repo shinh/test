@@ -11,15 +11,15 @@ const int A = 1920;
 const int B = 132;
 const int C = 396;
 
-std::vector<float> TakeNaive(const std::vector<float>& x,
-                             const std::vector<int>& indices) {
-    std::vector<float> y(A * C);
+std::vector<float> AddAtNaive(const std::vector<float>& y,
+                              const std::vector<int>& indices) {
+    std::vector<float> x(A * B);
     for (int i = 0; i < A; ++i) {
         for (int j = 0; j < C; ++j) {
-            y[i * C + j] = x[i * B + indices[j]];
+            x[i * B + indices[j]] += y[i * C + j];
         }
     }
-    return y;
+    return x;
 }
 
 void* GPUMalloc(size_t sz) {
@@ -40,28 +40,34 @@ void GPUMemcpy(void* dst, const void* src, size_t cnt, enum cudaMemcpyKind kind)
     }
 }
 
-__global__ void TakeCudaKernel(float* x, int* indices, float* y, int n) {
-    int i = blockIdx.x;
-    int j = threadIdx.x;
-    y[i * C + j] = x[i * B + indices[j]];
+__global__ void ZeroCudaKernel(float* x) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    x[idx] = 0;
 }
 
-std::vector<float> TakeCuda(const std::vector<float>& x,
-                            const std::vector<int>& indices,
-                            int n) {
-    std::vector<float> y(A * C);
+__global__ void AddAtCudaKernel(float* x, int* indices, float* y, int n) {
+    int i = blockIdx.x;
+    int j = threadIdx.x;
+    atomicAdd(&x[i * B + indices[j]], y[i * C + j]);
+}
+
+std::vector<float> AddAtCuda(const std::vector<float>& y,
+                             const std::vector<int>& indices,
+                             int n) {
+    std::vector<float> x(A * B);
     float* xg = (float*)GPUMalloc(x.size() * sizeof(x[0]));
     int* ig = (int*)GPUMalloc(indices.size() * sizeof(indices[0]));
     float* yg = (float*)GPUMalloc(y.size() * sizeof(y[0]));
-    fprintf(stderr, "memcpy xg\n");
-    GPUMemcpy(xg, x.data(), x.size() * sizeof(x[0]), cudaMemcpyHostToDevice);
+    fprintf(stderr, "memcpy yg\n");
+    GPUMemcpy(yg, y.data(), y.size() * sizeof(y[0]), cudaMemcpyHostToDevice);
     fprintf(stderr, "memcpy ig\n");
     GPUMemcpy(ig, indices.data(), indices.size() * sizeof(indices[0]), cudaMemcpyHostToDevice);
 
     fprintf(stderr, "take\n");
     clock_t start = clock();
     for (int i = 0; i < n; ++i) {
-        TakeCudaKernel<<<A, C>>>(xg, ig, yg, 0);
+        ZeroCudaKernel<<<A, B>>>(xg);
+        AddAtCudaKernel<<<A, C>>>(xg, ig, yg, 0);
     }
 
     cudaError_t err = cudaDeviceSynchronize();
@@ -74,28 +80,28 @@ std::vector<float> TakeCuda(const std::vector<float>& x,
             ((double)(clock() - start)) / CLOCKS_PER_SEC);
 
     fprintf(stderr, "memcpy yg\n");
-    GPUMemcpy(&y[0], yg, y.size() * sizeof(y[0]), cudaMemcpyDeviceToHost);
+    GPUMemcpy(&x[0], xg, x.size() * sizeof(x[0]), cudaMemcpyDeviceToHost);
     fprintf(stderr, "done\n");
-    return y;
+    return x;
 }
 
 int main() {
-    std::vector<float> x(A * B);
+    std::vector<float> y(A * C);
     std::vector<int> indices(C);
-    for (size_t i = 0; i < x.size(); ++i) {
-        x[i] = i;
+    for (size_t i = 0; i < y.size(); ++i) {
+        y[i] = i;
     }
     for (size_t i = 0; i < indices.size(); ++i) {
         indices[i] = i * i % C;
     }
 
-    std::vector<float> ey = TakeNaive(x, indices);
-    std::vector<float> ay = TakeCuda(x, indices, 1);
+    std::vector<float> ex = AddAtNaive(y, indices);
+    std::vector<float> ax = AddAtCuda(y, indices, 1);
 
-    for (size_t i = 0; i < ey.size(); ++i) {
-        //fprintf(stderr, "%zu %f %f\n", i, ey[i], ay[i]);
-        assert(abs(ey[i] - ay[i]) < 1e-10);
+    for (size_t i = 0; i < ex.size(); ++i) {
+        // fprintf(stderr, "%f %f\n", ex[i], ax[i]);
+        assert(abs(ex[i] - ax[i]) < 1e-10);
     }
 
-    TakeCuda(x, indices, 40);
+    AddAtCuda(y, indices, 40);
 }
