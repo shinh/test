@@ -3,5 +3,12 @@
 b=$1
 shift
 
+if git checkout origin/$b -b $b; then
+  exit
+fi
 git branch -D $b
+if git checkout origin/$b -b $b; then
+  exit
+fi
+git fetch origin
 git checkout origin/$b -b $b
