@@ -75,3 +75,5 @@ types = Autoloader('types')
 
 F = Lazy(lambda: chainer.functions)
 L = Lazy(lambda: chainer.links)
+TF = Lazy(lambda: torch.nn.functional)
+T = Lazy(lambda: torch)
