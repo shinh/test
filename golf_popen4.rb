@@ -47,8 +47,11 @@ def golf_popen4(*args)
       f.close
     end
 
-    sys_close 3 rescue nil
-    sys_close 4 rescue nil
+    ObjectSpace.each_object(IO) do |f|
+      if !f.closed? && f.respond_to?(:fileno) && f.fileno > 2
+        f.close
+      end
+    end
 
     sys_open("/dev/null", 0)
     sys_open("/dev/null", 2)
