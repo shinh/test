@@ -19,7 +19,17 @@ end
 def parse_line(line)
   size, name = line.split(' ', 2)
   size = size.to_i
-  [size, name]
+  [size, name.chomp]
+end
+
+def is_already_counted(name, seen_prefixes)
+  while name =~ /\/[^\/]+$/
+    name = $`
+    if seen_prefixes[name]
+      return true
+    end
+  end
+  return false
 end
 
 mu = Mutex.new
@@ -27,7 +37,7 @@ started = false
 tmpfile = '/tmp/du.tmp'
 TOP_N = 3
 
-if STDERR.isatty
+if true
   thread = Thread.new do
     while true
       sleep 0.1
@@ -37,13 +47,18 @@ if STDERR.isatty
         dirs = 0
         total = 0
         tops = []
+        seen_prefixes = {}
         IO.popen("sort -nr #{tmpfile}") do |pipe|
           pipe.each do |line|
             size, name = parse_line(line)
             dirs += 1
-            total += size
+            if !is_already_counted(name, seen_prefixes)
+              total += size
+            end
+            seen_prefixes[name] = true
+
             if tops.size < TOP_N
-              tops << "#{name.chomp}:#{human(size)}"
+              tops << "#{name}:#{human(size)}"
             end
           end
         end
