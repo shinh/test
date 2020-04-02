@@ -4,8 +4,8 @@ require 'irb/completion'
 require 'irb/ext/save-history'
 require 'irb/inspector'
 
-#require 'mathn'
-require 'tempfile'
+autoload :JSON, 'json'
+autoload :Tempfile, 'tempfile'
 
 IRB.conf[:SAVE_HISTORY] = 100000
 IRB.conf[:HISTORY_FILE] = "#{ENV['HOME']}/.irb_history"
@@ -77,7 +77,11 @@ class Integer
   end
 
   def human
-    if self >= 10_000_000_000
+    if self >= 10_000_000_000_000_000
+      "#{(self/1000_000_000_000_000).to_i}P"
+    elsif self >= 10_000_000_000_000
+      "#{(self/1000_000_000_000).to_i}T"
+    elsif self >= 10_000_000_000
       "#{(self/1000_000_000).to_i}G"
     elsif self >= 10_000_000
       "#{(self/1000_000).to_i}M"
@@ -149,6 +153,17 @@ def get_irb_inspectors
   end
 end
 
+def float_bits(v)
+  s = [v].pack('d').bytes
+  exponent = ((s[7] & 0x7f) << 4) | ((s[6] & 0xf0) >> 4)
+  mantissa = s[6] & 0xf
+  5.downto(0) do |i|
+    mantissa <<= 8
+    mantissa |= s[i]
+  end
+  [exponent, mantissa]
+end
+
 def prettify(v)
   fyi = []
   if v.is_a?(Rational)
@@ -161,10 +176,12 @@ def prettify(v)
     if v > 0 && v < 127
       fyi << "%s" % v.chr.inspect.tr('"', "'")
     end
-    if v > 1000 && v < 2**64
+    if v > 1000 && v < 2 ** 65
       fyi << v.human
     end
     "%s (%s)" % [v, fyi * ' ']
+  elsif v.is_a?(Float)
+    "%s (%s)" % [v, float_bits(v) * ' ']
   elsif v.is_a?(String) && v.size == 1
     "%s (%d)" % [v, v.ord]
   else
