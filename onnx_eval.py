@@ -50,8 +50,8 @@ class EvalContext(object):
 
             opset_imports = None
             if self.opset_version is not None:
-                opset_imports = onnx.helper.make_operatorsetid(
-                    '', opset_version)
+                opset_imports = [onnx.helper.make_operatorsetid(
+                    '', self.opset_version)]
             model = onnx.helper.make_model(graph, opset_imports=opset_imports)
             serialized = model.SerializeToString()
 
