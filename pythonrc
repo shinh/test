@@ -77,3 +77,9 @@ F = Lazy(lambda: chainer.functions)
 L = Lazy(lambda: chainer.links)
 TF = Lazy(lambda: torch.nn.functional)
 T = Lazy(lambda: torch)
+
+def load_numpy_helper():
+  import onnx
+  import onnx.numpy_helper
+  return onnx.numpy_helper
+numpy_helper = Lazy(load_numpy_helper)
