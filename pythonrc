@@ -85,3 +85,8 @@ def load_numpy_helper():
   import onnx.numpy_helper
   return onnx.numpy_helper
 numpy_helper = Lazy(load_numpy_helper)
+
+def load_fail(num=0):
+  e = np.load('/tmp/expected_0.npy')
+  a = np.load('/tmp/actual_0.npy')
+  return e, a
