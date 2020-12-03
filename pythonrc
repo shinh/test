@@ -90,3 +90,9 @@ def load_fail(num=0):
   e = np.load('/tmp/expected_0.npy')
   a = np.load('/tmp/actual_0.npy')
   return e, a
+
+def ls(*args):
+  subprocess.call(tuple(['ls']) + args)
+
+def cd(dir):
+  os.chdir(dir)
