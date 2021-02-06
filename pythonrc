@@ -80,6 +80,7 @@ L = Lazy(lambda: chainer.links)
 TF = Lazy(lambda: torch.nn.functional)
 T = Lazy(lambda: torch)
 nn = Lazy(lambda: torch.nn)
+tt = Lazy(lambda: torch.tensor)
 
 def load_numpy_helper():
   import onnx
