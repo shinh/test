@@ -39,7 +39,7 @@ int main() {
       int major, minor;
       char name[999];
       name[0] = 0;
-      sscanf(buf, "%lx-%lx %c%c%c%c %lx %d:%d %d%s",
+      sscanf(buf, "%p-%p %c%c%c%c %lx %d:%d %ld%s",
              &begin, &end, &r, &w, &x, &p, &offset, &major, &minor, &inode,
              name);
 
