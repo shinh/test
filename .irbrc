@@ -174,7 +174,7 @@ def prettify(v)
   if v.is_a?(Integer) && v <= 2**257
     fyi << '0x%x' % v
     if v > 0 && v < 127
-      fyi << "%s" % v.chr.inspect.tr('"', "'")
+      fyi << "%s" % v.chr.inspect
     end
     if v > 1000 && v < 2 ** 65
       fyi << v.human
