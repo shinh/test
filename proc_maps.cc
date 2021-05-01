@@ -52,6 +52,8 @@ int main(int argc, const char* argv[]) {
         long num_in_ram = 0;
         long num_in_swap = 0;
         long num_zero = 0;
+        long num_exclusive = 0;
+        long num_soft_dirty = 0;
         long size = end - begin;
         for (long i = 0; i < size / page_size; ++i) {
             uint64_t info;
@@ -69,9 +71,21 @@ int main(int argc, const char* argv[]) {
             if ((info >> 60) & 1) {
                 ++num_zero;
             }
+            if ((info >> 56) & 1) {
+                ++num_exclusive;
+            }
+            if ((info >> 55) & 1) {
+                ++num_soft_dirty;
+            }
+
+#if 0
+            uint64_t page_id = info & ((1ULL << 55ULL) - 1ULL);
+            printf("%lx page_id=%lu in_ram=%lu\n", info, page_id, ((info >> 63) & 1));
+#endif
         }
 
-        printf("%ld %ld %ld %ld\n", size, num_in_ram, num_in_swap, num_zero);
+        printf("%ld %ld %ld %ld %ld %ld\n",
+               size, num_in_ram, num_in_swap, num_zero, num_exclusive, num_soft_dirty);
     }
     fclose(maps_fp);
     fclose(pm_fp);
