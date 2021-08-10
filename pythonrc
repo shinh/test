@@ -39,6 +39,7 @@ def help(x):
     else:
         _help(x)
 
+ase = Autoloader('ase')
 ast = Autoloader('ast')
 chainer = Autoloader('chainer')
 chx = Autoloader('chainerx')
@@ -61,6 +62,7 @@ onnx = Autoloader('onnx')
 onnxruntime = Autoloader('onnxruntime')
 onnx_chainer = Autoloader('onnx_chainer')
 os = Autoloader('os')
+pandas = Autoloader('pandas')
 ppe = Autoloader('pytorch_pfn_extras')
 re = Autoloader('re')
 shutil = Autoloader('shutil')
