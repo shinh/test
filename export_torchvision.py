@@ -1,6 +1,23 @@
+import argparse
+
 import numpy as np
 import torch
+import torch.onnx.symbolic_helper
+import torch.onnx.symbolic_registry
 import torchvision
+
+
+OPSET_VERSION = 13
+
+
+def register_hswish(opset):
+    @torch.onnx.symbolic_helper.parse_args("v")
+    def symbolic_hardswish(g, input):
+        return g.op("HardSwish", input)
+
+    torch.onnx.symbolic_registry.register_op(
+        "hardswish", symbolic_hardswish, "", opset
+    )
 
 
 def create_random_input(bsize, h=224, w=224):
@@ -9,17 +26,28 @@ def create_random_input(bsize, h=224, w=224):
 
 
 def main():
-    for bsize in [1, 128]:
-        x = create_random_input(bsize)
+    parser = argparse.ArgumentParser(description="Export mobilenetv3")
+    parser.add_argument("model")
+    parser.add_argument("--bsize", type=int, default=1)
+    parser.add_argument("--opset", type=int, default=13)
+    parser.add_argument("--hswish", action="store_true")
+    args = parser.parse_args()
 
-        for model_name in dir(torchvision.models):
-            model_fn = getattr(torchvision.models, model_name)
-            if type(model_fn) != type(main):
-                continue
+    bsize = args.bsize
+    models = dir(torchvision.models) if args.model == "all" else [args.model]
 
-            onnx_name = f'{model_name}_bs{bsize}.onnx'
-            print('Exporting ' + onnx_name)
-            torch.onnx.export(model_fn(), x, onnx_name)
+    if args.hswish:
+        register_hswish(args.opset)
+
+    x = create_random_input(bsize)
+    for model_name in models:
+        model_fn = getattr(torchvision.models, model_name)
+        if type(model_fn) != type(main):
+            continue
+
+        onnx_name = f'{model_name}_bs{bsize}.onnx'
+        print('Exporting ' + onnx_name)
+        torch.onnx.export(model_fn(), x, onnx_name, opset_version=args.opset)
 
 
 if __name__ == '__main__':
