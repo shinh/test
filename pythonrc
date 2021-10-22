@@ -39,16 +39,19 @@ def help(x):
     else:
         _help(x)
 
-ase = Autoloader('ase')
+
+argparse = Autoloader('argparse')
 ast = Autoloader('ast')
 chainer = Autoloader('chainer')
 chx = Autoloader('chainerx')
+concurrent = Autoloader('concurrent')
 cupy = Autoloader('cupy')
 cv2 = Autoloader('cv2')
 gast = Autoloader('gast')
 glob = Autoloader('glob')
 inspect = Autoloader('inspect')
 json = Autoloader('json')
+logging = Autoloader('logging')
 math = Autoloader('math')
 matplotlib = Autoloader('matplotlib')
 mock = Autoloader('mock')
@@ -64,6 +67,7 @@ onnx_chainer = Autoloader('onnx_chainer')
 os = Autoloader('os')
 pandas = Autoloader('pandas')
 ppe = Autoloader('pytorch_pfn_extras')
+pprint = Autoloader('pprint')
 re = Autoloader('re')
 shutil = Autoloader('shutil')
 struct = Autoloader('struct')
@@ -71,6 +75,7 @@ subprocess = Autoloader('subprocess')
 sys = Autoloader('sys')
 threading = Autoloader('threading')
 tf = Autoloader('tensorflow')
+time = Autoloader('time')
 torch = Autoloader('torch')
 torchvision = Autoloader('torchvision')
 topi = Autoloader('topi')
@@ -83,6 +88,19 @@ TF = Lazy(lambda: torch.nn.functional)
 T = Lazy(lambda: torch)
 nn = Lazy(lambda: torch.nn)
 tt = Lazy(lambda: torch.tensor)
+
+def load_pyplot_helper():
+  import matplotlib.pyplot as plt
+  return plt
+plt = Lazy(load_pyplot_helper)
+
+def load_ase_helper():
+  import ase
+  import ase.build
+  import ase.io
+  import ase.visualize
+  return ase
+ase = Lazy(load_ase_helper)
 
 def load_numpy_helper():
   import onnx
