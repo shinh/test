@@ -47,8 +47,11 @@ def main():
 
         onnx_name = f'{model_name}_bs{bsize}.onnx'
         print('Exporting ' + onnx_name)
-        torch.onnx.export(model_fn(), x, onnx_name, opset_version=args.opset,
-                          enable_onnx_checker=not args.hswish)
+        torch.onnx.export(model_fn(pretrained=True),
+                          x, onnx_name,
+                          opset_version=args.opset,
+                          enable_onnx_checker=not args.hswish,
+                          input_names=["input"])
 
 
 if __name__ == '__main__':
