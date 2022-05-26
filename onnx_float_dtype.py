@@ -18,6 +18,15 @@ def _modify_tensor_proto(tensor, dtype):
         return
 
     a = onnx.numpy_helper.to_array(tensor)
+
+    if dtype == onnx.TensorProto.BFLOAT16:
+        # No numpy type for bfloat16.
+        tensor.ClearField("raw_data")
+        tensor.ClearField("float_data")
+        tensor.float_data.extend(list(a.flatten()))
+        tensor.data_type = dtype
+        return
+
     np_dtype = onnx.mapping.TENSOR_TYPE_TO_NP_TYPE[dtype]
     a = a.astype(np_dtype)
     tensor.CopyFrom(onnx.numpy_helper.from_array(a, tensor.name))
