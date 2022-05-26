@@ -2,8 +2,11 @@
 
 set -ex
 
-git checkout master
+branch=$1
+branch="${branch:=master}"
+
+git checkout "${branch}"
 git pull
 git fetch upstream
-git rebase upstream/master master
-git push origin master
+git rebase upstream/"${branch}" "${branch}"
+git push origin "${branch}"
