@@ -1,8 +1,30 @@
 import argparse
+import cmath
+import struct
+import sys
 
 import onnx
 import onnx.mapping
 import onnx.numpy_helper
+
+
+# From https://github.com/onnx/onnx/pull/4193/files
+# convert a f32 to bf16 (as int)
+def float32_to_bfloat16(fval: float) -> int:
+    ival = int.from_bytes(struct.pack('<f', fval), 'little')
+    if cmath.isnan(fval):
+        # NaN requires at least 1 significand bit set
+        ival16 = 0x7FC0  # sign=0, exp=all-ones, sig=0b1000000
+    else:
+        # drop bottom 16-bits
+        # round remaining bits using round-to-nearest-even
+        round = ((ival >> 16) & 1) + 0x7fff
+        ival16 = (ival + round) >> 16
+    # swap byte order for big-endian
+    if sys.byteorder == 'big':
+        bytes = struct.pack('<h', ival16)
+        ival16 = int.from_bytes(bytes, 'big')
+    return ival16
 
 
 def _modify_type_proto(typ, dtype):
@@ -23,7 +45,7 @@ def _modify_tensor_proto(tensor, dtype):
         # No numpy type for bfloat16.
         tensor.ClearField("raw_data")
         tensor.ClearField("float_data")
-        tensor.float_data.extend(list(a.flatten()))
+        tensor.int32_data.extend([float32_to_bfloat16(v) for v in a.flatten()])
         tensor.data_type = dtype
         return
 
