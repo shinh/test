@@ -1,3 +1,4 @@
+import numpy as np
 import onnx
 import tvm
 
@@ -37,7 +38,7 @@ def save_ir_as_onnx(mod, out):
             continue
 
         if isinstance(node, tvm.relay.Var):
-            name = f"i{idx}"
+            name = str(node.name_hint)
             node_to_name[str(node.handle)] = name
             continue
 
@@ -71,8 +72,27 @@ def save_ir_as_onnx(mod, out):
             str(node.op), onnx_inputs, [name], **onnx_attrs
         ))
 
+    value_infos = []
+    for node in nodes:
+        name = node_to_name[str(node.handle)]
+
+        try:
+            typ = node.checked_type
+        except ValueError:
+            continue
+
+        onnx_dtype = onnx.TensorProto.UNDEFINED
+        if hasattr(np, typ.dtype):
+            np_dtype = np.dtype(getattr(np, typ.dtype))
+            if np_dtype in onnx.mapping.NP_TYPE_TO_TENSOR_TYPE:
+                onnx_dtype = onnx.mapping.NP_TYPE_TO_TENSOR_TYPE[np_dtype]
+        onnx_shape = [int(dim) for dim in typ.shape]
+
+        onnx_type = onnx.helper.make_tensor_type_proto(onnx_dtype, onnx_shape)
+        value_infos.append(onnx.helper.make_value_info(name, onnx_type))
+
     onnx_output = onnx.ValueInfoProto(name=node_to_name[str(body.handle)])
-    onnx_graph = onnx.helper.make_graph(onnx_nodes, out, [], [onnx_output])
+    onnx_graph = onnx.helper.make_graph(onnx_nodes, out, [], [onnx_output], value_info=value_infos)
 
     onnx_model = onnx.helper.make_model(onnx_graph)
     onnx.save(onnx_model, out)
