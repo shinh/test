@@ -117,10 +117,25 @@ def type_to_str(typ):
     return "UnknownType"
 
 
-def node_summary_str(node):
+def node_summary_str(node, abbrev=False):
     op_str = anchor(node.op_type, node_detail_label(node))
-    inputs_str = ", ".join(anchor(v, value_detail_label(v)) for v in node.input)
-    outputs_str = ", ".join(anchor(v, value_detail_label(v)) for v in node.output)
+
+    def values_str(values):
+        omit = abbrev and len(values) > 10
+        if omit:
+            values = values[:10]
+        strs = []
+        for value in values:
+            if value:
+                strs.append(anchor(value, value_detail_label(value)))
+            else:
+                strs.append("(null)")
+        if omit:
+            strs.append("...")
+        return ", ".join(strs)
+
+    inputs_str = values_str(node.input)
+    outputs_str = values_str(node.output)
     return "{}({}) -> ({})".format(op_str, inputs_str, outputs_str)
 
 
@@ -160,10 +175,13 @@ def graph_to_str(graph, graph_name, parent_name=None):
     if parent_name:
         html_str += "Parent graph: " + anchor(parent_name, graph_detail_label(parent_name))
 
+    initializer_set = set(i.name for i in graph.initializer)
+
     html_str += f'<h2>Graph inputs</h2>'
     html_str += "<ul>"
     for input in graph.input:
-        html_str += "<li>" + value_summary_str(input)
+        if input.name not in initializer_set:
+            html_str += "<li>" + value_summary_str(input)
     html_str += "</ul>"
 
     html_str += f'<h2>Graph outputs</h2>'
@@ -184,9 +202,9 @@ def graph_to_str(graph, graph_name, parent_name=None):
         html_str += f'<h3 id="{value_detail_label(value.name)}">{value_str} {value.kind}</h3>'
         html_str += "<ul>"
         if value.producer:
-            html_str += f"<li>producer: " + node_summary_str(value.producer)
+            html_str += f"<li>producer: " + node_summary_str(value.producer, abbrev=True)
         for user in value.users:
-            html_str += f"<li>user: " + node_summary_str(user)
+            html_str += f"<li>user: " + node_summary_str(user, abbrev=True)
         html_str += "</ul>"
 
     subgraphs = []
@@ -227,7 +245,7 @@ def graph_to_str(graph, graph_name, parent_name=None):
 
         if node.doc_string:
             html_str += f'<h3>doc_string</h2>'
-            html_str += "<pre>{node.doc_string}</pre>"
+            html_str += f"<pre>{node.doc_string}</pre>"
 
     for subgraph in subgraphs:
         html_str += graph_to_str(subgraph, subgraph.name, graph_name)
