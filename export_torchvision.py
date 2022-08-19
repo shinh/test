@@ -50,7 +50,6 @@ def main():
         torch.onnx.export(model_fn(pretrained=True),
                           x, onnx_name,
                           opset_version=args.opset,
-                          enable_onnx_checker=not args.hswish,
                           input_names=["input"])
 
 
