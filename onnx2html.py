@@ -238,9 +238,19 @@ def graph_to_str(graph, graph_name, parent_name=None):
         for attr in node.attribute:
             value = onnx.helper.get_attribute_value(attr)
             value_str = attr_value_str(value)
+            if isinstance(value_str, str) and len(value_str) > 200:
+                value_str = value_str[:200] + " ... (omitted)"
             if isinstance(value, onnx.GraphProto):
                 subgraphs.append(value)
-            html_str += f"<li>{attr.name}: {value_str}"
+            if (isinstance(value_str, list) and
+                len(value_str) > 1 and
+                any(isinstance(s, str) and len(s) > 20 for s in value_str)):
+                html_str += f"<li>{attr.name}:<ul>"
+                for s in value_str:
+                    html_str += f"<li>{s}"
+                html_str += "</ul>"
+            else:
+                html_str += f"<li>{attr.name}: {value_str}"
         html_str += "</ul>"
 
         if node.doc_string:
