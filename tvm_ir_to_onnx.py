@@ -1,6 +1,9 @@
+import sys
+
 import numpy as np
 import onnx
 import tvm
+
 
 def save_ir_as_onnx(mod, out):
     assert len(mod.functions) == 1
@@ -96,3 +99,13 @@ def save_ir_as_onnx(mod, out):
 
     onnx_model = onnx.helper.make_model(onnx_graph)
     onnx.save(onnx_model, out)
+
+
+def main():
+    with open(sys.argv[1]) as f:
+        mod = tvm.ir.load_json(f.read())
+    save_ir_as_onnx(mod, sys.argv[2])
+
+
+if __name__ == "__main__":
+    main()
