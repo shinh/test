@@ -2,7 +2,9 @@ import sys
 
 import numpy as np
 import onnx
+import onnx.numpy_helper
 import tvm
+import tvm.relay
 
 
 def save_ir_as_onnx(mod, out):
