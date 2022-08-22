@@ -264,7 +264,10 @@ def graph_to_str(graph, graph_name, parent_name=None):
 
 
 def onnx2html(model):
-    model = onnx.shape_inference.infer_shapes(model)
+    try:
+        model = onnx.shape_inference.infer_shapes(model)
+    except Exception as e:
+        sys.stderr.write(f"Shape inference error: {e}\n")
 
     html_str = graph_to_str(model.graph, "Top level graph")
 
