@@ -271,6 +271,16 @@ def onnx2html(model):
 
     html_str = graph_to_str(model.graph, "Top level graph")
 
+    for func in model.functions:
+        graph = onnx.GraphProto()
+        for value in func.input:
+            graph.input.append(onnx.ValueInfoProto(name=value))
+        for value in func.output:
+            graph.output.append(onnx.ValueInfoProto(name=value))
+        for node in func.node:
+            graph.node.append(node)
+        html_str += graph_to_str(graph, f"Function {func.name}")
+
     return html_str
 
 
