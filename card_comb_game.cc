@@ -7,21 +7,29 @@
 #include <vector>
 
 int ComputeScore(const std::vector<double>& vals) {
-    std::vector<int> outs;
+    int score = 0;
+    bool done[101] = {};
     for (int i = 0; i < vals.size(); ++i) {
         for (int j = i + 1; j < vals.size(); ++j) {
             int o = static_cast<int>(vals[i] * vals[j]);
-            if (o > 0 && o <= 100) {
-                outs.push_back(o);
+            if (o > 0 && o <= 100 && !done[o]) {
+                ++score;
+                done[o] = true;
             }
         }
     }
-    std::sort(outs.begin(), outs.end());
-    return std::unique(outs.begin(), outs.end()) - outs.begin();
+    return score;
+}
+
+double SuggestChange(double v, std::mt19937& rng) {
+    double mn = std::max<double>(-1.5, -v + 0.5);
+    double mx = std::min<double>(1.5, 13 - v);
+    double d = std::uniform_real_distribution<double>(mn, mx)(rng);
+    return d;
 }
 
 int main() {
-    int N = 17;
+    int N = 16;
     std::mt19937 rng(42);
     std::vector<double> vals;
     for (int i = 0; i < N; ++i) {
@@ -34,11 +42,11 @@ int main() {
     std::vector<double> best;
     int best_score = score;
     int T = 10000000;
-    double start_temp = 1e-1;
-    double end_temp = 1e-5;
+    double start_temp = 0.5;
+    double end_temp = 1e-4;
     for (int t = 0; t < T; ++t) {
-        int c = std::uniform_int_distribution<int>(0, N)(rng);
-        double d = std::uniform_real_distribution<double>(-1.5, 1.5)(rng);
+        int c = std::uniform_int_distribution<int>(0, N - 1)(rng);
+        double d = SuggestChange(vals[c], rng);
         vals[c] += d;
 
         int next_score = ComputeScore(vals);
@@ -58,6 +66,7 @@ int main() {
     }
 
     std::cerr << "Best score: " << best_score << "\n";
+    std::sort(vals.begin(), vals.end());
     std::cerr << "{";
     for (double v : vals) {
         std::cerr << v << ",";
