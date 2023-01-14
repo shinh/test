@@ -4,6 +4,7 @@
 #include <cmath>
 #include <iostream>
 #include <random>
+#include <string>
 #include <vector>
 
 int ComputeScore(const std::vector<double>& vals) {
@@ -28,9 +29,10 @@ double SuggestChange(double v, std::mt19937& rng) {
     return d;
 }
 
-int main() {
+int main(int argc, char* argv[]) {
     int N = 16;
-    std::mt19937 rng(42);
+    int seed = argc == 1 ? 42 : std::stoi(argv[1]);
+    std::mt19937 rng(seed);
     std::vector<double> vals;
     for (int i = 0; i < N; ++i) {
         vals.push_back(std::uniform_real_distribution<double>(1, 10)(rng));
