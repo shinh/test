@@ -68,9 +68,9 @@ int main(int argc, char* argv[]) {
     }
 
     std::cerr << "Best score: " << best_score << "\n";
-    std::sort(vals.begin(), vals.end());
+    std::sort(best.begin(), best.end());
     std::cerr << "{";
-    for (double v : vals) {
+    for (double v : best) {
         std::cerr << v << ",";
     }
     std::cerr << "}\n";
