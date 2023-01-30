@@ -290,7 +290,7 @@ def main():
     parser.add_argument("html")
     args = parser.parse_args()
 
-    model = onnx.load(args.onnx)
+    model = onnx.load(args.onnx, load_external_data=False)
     html = onnx2html(model)
     with open(args.html, "w") as f:
         f.write(html)
