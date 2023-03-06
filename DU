@@ -23,7 +23,7 @@ def parse_line(line)
 end
 
 def is_already_counted(name, seen_prefixes)
-  while name =~ /\/[^\/]+$/
+  while name.b =~ /\/[^\/]+$/n
     name = $`
     if seen_prefixes[name]
       return true
