@@ -191,11 +191,11 @@ end
 
 inspector_proc = proc{|v|
   pv = prettify(v)
-  if pv != v
-    pv
-  else
-    get_irb_inspectors[true].inspect_value(pv)
-  end
+  # if pv != v
+  #   pv
+  # else
+  #   get_irb_inspectors[true].inspect_value(pv)
+  # end
 }
 get_irb_inspectors['mine'] = IRB::Inspector(inspector_proc)
 IRB.conf[:INSPECT_MODE] = 'mine'
