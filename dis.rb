@@ -94,16 +94,21 @@ calls = []
 if ebx_thunk
   labels[ebx_thunk] = '[func_ebx]'
 end
+
+func_prolog = /push\s+(%[er]bp|{lr})/
 dump.each_line do |line|
   if line =~ /^(\h+) <(.*)>:$/
     labels[$1.hex] = $2
+  end
+  if line =~ /endbr64/
+    func_prolog = /endbr64/
   end
 end
 
 dump.each_line do |line|
   if line =~ /^(\h+) <(.*)>:$/
     labels[$1.hex] = $2
-  elsif line =~ /push\s+(%[er]bp|{lr})/
+  elsif line =~ func_prolog
     addr = line.hex
     if !labels[addr] || labels[addr] =~ /^\[L/
       label = "[func#{fid}]"
