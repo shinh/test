@@ -1,4 +1,9 @@
-import seccomp
+# pip3 install --user pyseccomp
+
+try:
+    import seccomp
+except ImportError:
+    import pyseccomp as seccomp
 
 f = seccomp.SyscallFilter(defaction=seccomp.KILL)
 
