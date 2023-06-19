@@ -1,14 +1,14 @@
 require 'json'
 
-def github_word(word)
-  r = `gh api 'search/code?q=language:JavaScript+#{word}'`
+def github_word(lang, word)
+  r = `gh api 'search/code?q=language:#{lang}+#{word}'`
   JSON.load(r)["total_count"]
 end
 
-def github_popularity(keywords, filename)
+def github_popularity(lang, keywords, filename)
   data = {}
   keywords.each do |word|
-    count = github_word(word)
+    count = github_word(lang, word)
     puts "#{word} #{count}"
     data[word] = count
     sleep 10
@@ -41,4 +41,18 @@ double	final	float	goto
 int	long	native	short
 synchronized	throws	transient	volatile)
 
-github_popularity(js_keywords - js_keywords_removed, "github_js_keywords.json")
+java_keywords = %w(
+abstract	continue	for	new	switch
+assert	default	goto	package	synchronized
+boolean	do	if	private	this
+break	double	implements	protected	throw
+byte	else	import	public	throws
+case	enum	instanceof	return	transient
+catch	extends	int	short	try
+char	final	interface	static	void
+class	finally	long	strictfp	volatile
+const	float	native	super	while
+)
+
+#github_popularity("JavaScript", js_keywords - js_keywords_removed, "github_js_keywords.json")
+github_popularity("Java", java_keywords, "github_java_keywords.json")
