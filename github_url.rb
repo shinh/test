@@ -22,6 +22,7 @@ Dir.chdir(git_dir) do
   end
 
   url.gsub!(/git@(.*)?:/, 'https://\1/')
+  url.gsub!(/ssh:\/\/git@/, 'https://')
   url.gsub!(/\.git$/, '')
   url.chomp!
 
