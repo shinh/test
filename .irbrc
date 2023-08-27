@@ -185,7 +185,7 @@ def prettify(v)
   elsif v.is_a?(String) && v.size == 1
     "%s (%d)" % [v, v.ord]
   else
-    v
+    v.inspect
   end
 end
 
