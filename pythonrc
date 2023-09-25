@@ -66,6 +66,7 @@ onnxruntime = Autoloader('onnxruntime')
 onnx_chainer = Autoloader('onnx_chainer')
 os = Autoloader('os')
 pandas = Autoloader('pandas')
+pathlib = Autoloader('pathlib')
 ppe = Autoloader('pytorch_pfn_extras')
 pprint = Autoloader('pprint')
 re = Autoloader('re')
@@ -88,6 +89,7 @@ TF = Lazy(lambda: torch.nn.functional)
 T = Lazy(lambda: torch)
 nn = Lazy(lambda: torch.nn)
 tt = Lazy(lambda: torch.tensor)
+Path = Lazy(lambda: pathlib.Path)
 
 def load_pyplot_helper():
   import matplotlib.pyplot as plt
