@@ -27,7 +27,7 @@ Dir.chdir(git_dir) do
   url.chomp!
 
   branches = `git branch --list`
-  branch = branches[/\s*(master|main|dev)$/, 1]
+  branch = branches[/\s+(master|main|dev)$/, 1]
 
   rel = file[git_dir.size..-1]
 
