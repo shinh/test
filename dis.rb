@@ -73,6 +73,8 @@ if !cmd
   elsif `file #{file}` =~ /PE32/
     cmd = "ruby #{File.dirname(File.realpath(__FILE__))}/dispe.rb #{exe.filename}"
   elsif `file #{file}` =~ / ARM/
+    cmd = "aarch64-linux-gnu-objdump #{dumpopt} #{exe.filename}"
+  elsif `file #{file}` =~ / ARM/
     cmd = "arm-linux-gnueabihf-objdump #{dumpopt} #{exe.filename}"
   elsif `file #{file}` =~ / SH,/
     cmd = "/usr/local/stow/binutils-all/bin/all-objdump #{dumpopt} #{exe.filename}"
