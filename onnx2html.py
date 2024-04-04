@@ -236,6 +236,10 @@ def graph_to_str(graph, graph_name, parent_name=None):
             html_str += f'<h3>attributes</h2>'
         html_str += "<ul>"
         for attr in node.attribute:
+            if attr.ref_attr_name:
+                html_str += f"<li>{attr.name}: REF({attr.ref_attr_name})"
+                continue
+
             value = onnx.helper.get_attribute_value(attr)
             value_str = attr_value_str(value)
             if isinstance(value_str, str) and len(value_str) > 200:
