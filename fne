@@ -1,0 +1,74 @@
+#!/usr/bin/perl
+
+use strict;
+
+my $EDITOR = ($ARGV[2] eq "") ? "editor" : $ARGV[2];
+my $TMP = "/tmp/.tmp-fne";
+
+open OUT, "> $TMP";
+
+my @before;
+
+my $com = ($ARGV[0] eq "") ? "mv" : $ARGV[0];
+my $dir = ($ARGV[1] eq "") ? "." : $ARGV[1];
+
+my $rename = 0;
+if ($com eq "rename") { $rename = 1; }
+
+opendir DIR, $dir;
+foreach (sort readdir DIR) {
+  if ($_ eq '.' || $_ eq '..') { next; }
+  push @before, $_;
+  print OUT "$_\n";
+}
+
+close OUT;
+
+system("$EDITOR $TMP");
+
+my @commands;
+my @after;
+my $i = 0;
+
+open IN, $TMP;
+while (<IN>) {
+  chomp;
+  my $bef = $before[$i];
+  if ($_ eq "") { print "file too long\n"; die; }
+  if ($bef eq "") { print "file too short\n"; die; }
+  
+  my $command = "$com \"$dir/$bef\" \"$_\"";
+  push @commands, $command;
+  push @after, $_;
+  print "$command\n";
+  $i++;
+}
+
+my $ok;
+while ($ok ne "y" && $ok ne "n") {
+  print "ok? [y/n]";
+  $ok = <STDIN>;
+  chomp $ok;
+}
+
+if ($ok eq "n") {
+  print "canceled\n";
+  exit(1);
+}
+
+if ($rename) {
+  foreach(@before) {
+    my $after = shift @after;
+    rename "$dir/$_", $after or die;
+  }
+}
+else {
+  foreach (@commands) {
+    system $_;
+  }
+}
+
+print "successed\n";
+
+exit 0;
+

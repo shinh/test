@@ -1,0 +1,10 @@
+#!/usr/bin/perl
+
+unless (-e $ARGV[0] && -e $ARGV[1]) {
+  print "nothing to do.\n";
+}
+
+rename $ARGV[0], ".tmp-swap";
+rename $ARGV[1], $ARGV[0];
+rename ".tmp-swap", $ARGV[1];
+
