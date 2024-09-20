@@ -5,7 +5,8 @@ try:
 except ImportError:
     import pyseccomp as seccomp
 
-f = seccomp.SyscallFilter(defaction=seccomp.KILL)
+f = seccomp.SyscallFilter(defaction=seccomp.LOG)
+#f = seccomp.SyscallFilter(defaction=seccomp.KILL)
 
 f.add_rule(seccomp.ALLOW, "read")
 f.add_rule(seccomp.ALLOW, "write")

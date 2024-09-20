@@ -1,0 +1,5 @@
+#!/bin/bash
+
+for f in $(git grep --perl-regexp $1 | sed 's@:.*@@' | uniq); do
+  perl -i -p -e "s@$1@$2@g" $f
+done
