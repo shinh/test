@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 
 const int NUM_CPU = 2;
@@ -20,7 +21,7 @@ typedef struct {
 CPU CPU_read(FILE* fp) {
     CPU cpu;
     char buf[9];
-    fscanf(fp, "%s%lld%lld%lld%lld%lld%lld%lld",
+    fscanf(fp, "%s%lld%lld%lld%lld%lld%lld%lld%lld",
            buf,
            &cpu.usertime, &cpu.nicetime, &cpu.systime, &cpu.idletime,
            &cpu.iowait, &cpu.irq, &cpu.softirq, &cpu.steal);
@@ -46,9 +47,9 @@ int64 CPU_total(CPU* cpu) {
 }
 
 typedef struct {
-    int total, free, buffers, cached, swapcached, active, inactive,
+    int total, free, available, buffers, cached, swapcached, active, inactive,
         active_anon, inactive_anon, active_file, inactive_file,
-        unevictable, mlocked, swap_total, swap_free, dirty,
+        unevictable, mlocked, swap_total, swap_free, zswap, zswapped, dirty,
         write_back, anon_pages, mapped, shmem,
         slab, sreclaimable, sunreclaim;
 } Mem;
@@ -95,9 +96,9 @@ Net Net_read(FILE* fp) {
     Net r;
     int64 b;
     while (fgetc(fp) != ':') {}
-    fscanf(fp, "%d%d%d%d%d%d%d%d",
+    fscanf(fp, "%lld%lld%lld%lld%lld%lld%lld%lld",
            &r.r_bytes, &b, &b, &b, &b, &b, &b, &b);
-    fscanf(fp, "%d%d%d%d%d%d%d%d",
+    fscanf(fp, "%lld%lld%lld%lld%lld%lld%lld%lld",
            &r.t_bytes, &b, &b, &b, &b, &b, &b, &b);
     return r;
 }
