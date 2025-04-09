@@ -14,6 +14,7 @@ def main():
 
     size_by_basename = collections.defaultdict(int)
     size_by_dirname = collections.defaultdict(int)
+    size_by_subdirname = collections.defaultdict(int)
     total = 0
 
     logging.basicConfig(
@@ -34,6 +35,7 @@ def main():
         total += size
         size_by_basename[os.path.basename(filename)] += size
         dirname = os.path.dirname(os.path.relpath(filename, base_dir))
+        size_by_subdirname[os.path.basename(dirname)] += size
         while dirname:
             size_by_dirname[dirname] += size
             dirname = os.path.dirname(dirname)
@@ -48,9 +50,15 @@ def main():
 
     print("File sizes by basename:")
     show_stats(size_by_basename)
+    print()
+
+    print("File sizes by subdirname:")
+    show_stats(size_by_subdirname)
+    print()
 
     print("File sizes by dirname:")
     show_stats(size_by_dirname)
+    print()
 
 
 if __name__ == "__main__":
