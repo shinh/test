@@ -82,6 +82,7 @@ timm = Autoloader('timm')
 torch = Autoloader('torch')
 torchvision = Autoloader('torchvision')
 topi = Autoloader('topi')
+transformers = Autoloader('transformers')
 tvm = Autoloader('tvm')
 types = Autoloader('types')
 
@@ -92,6 +93,8 @@ T = Lazy(lambda: torch)
 nn = Lazy(lambda: torch.nn)
 tt = Lazy(lambda: torch.tensor)
 Path = Lazy(lambda: pathlib.Path)
+AutoModelForCausalLM = Lazy(lambda: transformers.AutoModelForCausalLM)
+AutoTokenizer = Lazy(lambda: transformers.AutoTokenizer)
 
 def load_pyplot_helper():
   import matplotlib.pyplot as plt
