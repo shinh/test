@@ -93,6 +93,7 @@ T = Lazy(lambda: torch)
 nn = Lazy(lambda: torch.nn)
 tt = Lazy(lambda: torch.tensor)
 Path = Lazy(lambda: pathlib.Path)
+AutoConfig = Lazy(lambda: transformers.AutoConfig)
 AutoModelForCausalLM = Lazy(lambda: transformers.AutoModelForCausalLM)
 AutoTokenizer = Lazy(lambda: transformers.AutoTokenizer)
 
