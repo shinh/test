@@ -15,6 +15,10 @@ class Lazy(object):
         self._load_lazy()
         return getattr(self._obj, name)
 
+    def __call__(self, *args, **kwargs):
+        self._load_lazy()
+        return self._obj.__call__(*args, **kwargs)
+
     def __dir__(self):
         self._load_lazy()
         return dir(self._obj)
