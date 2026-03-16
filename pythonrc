@@ -130,3 +130,7 @@ def ls(*args):
 
 def cd(dir):
   os.chdir(dir)
+
+def login(token):
+  from huggingface_hub import login
+  login(token)
