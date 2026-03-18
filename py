@@ -1,3 +1,3 @@
 #!/bin/sh
 
-PYTHONSTARTUP=$HOME/test/pythonrc exec python3
+PYTHONSTARTUP=$HOME/test/pythonrc exec ipython

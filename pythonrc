@@ -134,3 +134,10 @@ def cd(dir):
 def login(token):
   from huggingface_hub import login
   login(token)
+
+def load_onnx_tests(dir):
+  m = {}
+  for p in glob.glob(os.path.join(dir, "test_data_set_0/*.pb")):
+    t = onnx.load_tensor(p)
+    m[t.name] = onnx.numpy_helper.to_array(t)
+  return m
