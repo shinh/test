@@ -121,8 +121,8 @@ def load_numpy_helper():
 numpy_helper = Lazy(load_numpy_helper)
 
 def load_fail(num=0):
-  e = np.load('/tmp/expected_0.npy')
-  a = np.load('/tmp/actual_0.npy')
+  e = np.load('/tmp/failed_results/expected_0.npy')
+  a = np.load('/tmp/failed_results/actual_0.npy')
   return e, a
 
 def ls(*args):
