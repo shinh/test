@@ -41,6 +41,8 @@ class SessionDump:
     session_id: str | None = None
     timestamp: str | None = None
     cwd: str | None = None
+    branch: str | None = None
+    repository_url: str | None = None
     cli_version: str | None = None
     is_subagent: bool = False
     prefill_tokens: int | None = None
@@ -111,6 +113,10 @@ def parse_session(path: Path, root: Path) -> SessionDump:
             if record.get("type") is None and isinstance(record.get("id"), str):
                 dump.session_id = record.get("id")
                 dump.timestamp = record.get("timestamp")
+                git = record.get("git")
+                if isinstance(git, dict):
+                    dump.branch = git.get("branch")
+                    dump.repository_url = git.get("repository_url")
                 continue
             if payload is None:
                 payload = record
@@ -135,6 +141,10 @@ def parse_session(path: Path, root: Path) -> SessionDump:
                 dump.session_id = payload.get("id")
                 dump.timestamp = payload.get("timestamp") or record.get("timestamp")
                 dump.cwd = payload.get("cwd")
+                git = payload.get("git")
+                if isinstance(git, dict):
+                    dump.branch = git.get("branch")
+                    dump.repository_url = git.get("repository_url")
                 dump.cli_version = payload.get("cli_version")
                 dump.is_subagent = payload.get("thread_source") == "subagent" or bool(
                     payload.get("source", {}).get("subagent")
@@ -174,6 +184,10 @@ def render_markdown(dumps: list[SessionDump]) -> str:
             chunks.append(f"- timestamp: `{dump.timestamp}`")
         if dump.cwd:
             chunks.append(f"- cwd: `{dump.cwd}`")
+        if dump.branch:
+            chunks.append(f"- branch: `{dump.branch}`")
+        if dump.repository_url:
+            chunks.append(f"- repository_url: `{dump.repository_url}`")
         if dump.is_subagent:
             chunks.append("- subagent: `true`")
         if dump.prefill_tokens is not None or dump.decode_tokens is not None:
@@ -212,6 +226,8 @@ def render_jsonl(dumps: list[SessionDump]) -> str:
                     "session_id": dump.session_id,
                     "timestamp": dump.timestamp,
                     "cwd": dump.cwd,
+                    "branch": dump.branch,
+                    "repository_url": dump.repository_url,
                     "is_subagent": dump.is_subagent,
                     "token_usage": {
                         "prefill_tokens": dump.prefill_tokens,
@@ -288,10 +304,16 @@ def main() -> int:
         action="store_true",
         help="print only aggregate token totals for selected sessions as JSON",
     )
+    parser.add_argument(
+        "--branch",
+        help="include only sessions whose session_meta git.branch matches this value",
+    )
     args = parser.parse_args()
 
     root = args.root.resolve()
     dumps = [parse_session(path, root) for path in iter_session_files(root)]
+    if args.branch:
+        dumps = [dump for dump in dumps if dump.branch == args.branch]
     if not args.include_subagents:
         dumps = [dump for dump in dumps if not dump.is_subagent]
     if not args.include_empty:
